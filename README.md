@@ -156,6 +156,7 @@ Use these before launch, production, or scaling:
 | [EXECUTION_CHECKLIST.md](EXECUTION_CHECKLIST.md) | Day-to-day execution — sprints, merges, releases |
 | [SAAS_READY_CHECKLIST.md](SAAS_READY_CHECKLIST.md) | SaaS-specific — billing, multi-tenant, scale, SLAs |
 | [docs/MVP_STRATEGY_AND_ROADMAP.md](docs/MVP_STRATEGY_AND_ROADMAP.md) | Strategy and roadmap to a ready MVP for 100 users (feature audit, fixes, phased plan) |
+| [docs/BUILD_SUMMARY.md](docs/BUILD_SUMMARY.md) | Complete build summary — all features implemented, ready for production |
 
 ---
 

@@ -11,11 +11,12 @@ import { toast } from "sonner";
 export default function Auth() {
   const { user, loading } = useAuth();
   const [isSignUp, setIsSignUp] = useState(false);
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, resetPassword } = useAuth();
 
   if (loading) return <div className="flex min-h-screen items-center justify-center bg-background"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
   if (user) return <Navigate to="/" replace />;
@@ -23,6 +24,19 @@ export default function Auth() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
+    
+    if (isForgotPassword) {
+      const { error } = await resetPassword(email);
+      if (error) {
+        toast.error(error.message);
+      } else {
+        toast.success("Check your email for password reset instructions!");
+        setIsForgotPassword(false);
+      }
+      setSubmitting(false);
+      return;
+    }
+
     const { error } = isSignUp
       ? await signUp(email, password, displayName)
       : await signIn(email, password);
@@ -59,20 +73,33 @@ export default function Auth() {
               <Label htmlFor="email">Email</Label>
               <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" required />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" required minLength={6} />
-            </div>
+            {!isForgotPassword && (
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" required minLength={6} />
+              </div>
+            )}
             <Button type="submit" className="w-full" disabled={submitting}>
               {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isSignUp ? "Create Account" : "Sign In"}
+              {isForgotPassword ? "Send Reset Link" : isSignUp ? "Create Account" : "Sign In"}
             </Button>
           </form>
-          <div className="mt-4 text-center text-sm text-muted-foreground">
-            {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
-            <button onClick={() => setIsSignUp(!isSignUp)} className="text-primary hover:underline font-medium">
-              {isSignUp ? "Sign in" : "Sign up"}
-            </button>
+          <div className="mt-4 space-y-2 text-center text-sm text-muted-foreground">
+            {!isForgotPassword && (
+              <>
+                {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
+                <button onClick={() => setIsSignUp(!isSignUp)} className="text-primary hover:underline font-medium">
+                  {isSignUp ? "Sign in" : "Sign up"}
+                </button>
+              </>
+            )}
+            {!isSignUp && (
+              <div>
+                <button onClick={() => setIsForgotPassword(!isForgotPassword)} className="text-primary hover:underline font-medium">
+                  {isForgotPassword ? "Back to sign in" : "Forgot password?"}
+                </button>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>

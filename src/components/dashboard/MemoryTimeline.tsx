@@ -1,7 +1,10 @@
+import { useState, useMemo } from "react";
 import { Memory } from "@/types/memory";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Brain, Code, GitBranch, MessageSquare, Trash2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Brain, Code, GitBranch, MessageSquare, Trash2, Search, X } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
@@ -33,17 +36,102 @@ interface Props {
   onDelete: (id: string) => void;
 }
 
+const ITEMS_PER_PAGE = 50;
+
 export function MemoryTimeline({ memories, selectedId, onSelect, onDelete }: Props) {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [typeFilter, setTypeFilter] = useState<string>("all");
+  const [layerFilter, setLayerFilter] = useState<string>("all");
+  const [page, setPage] = useState(1);
+
+  const filteredMemories = useMemo(() => {
+    let filtered = memories;
+
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      filtered = filtered.filter(m => 
+        m.title.toLowerCase().includes(q) || 
+        m.content.toLowerCase().includes(q) ||
+        m.tags?.some(t => t.toLowerCase().includes(q))
+      );
+    }
+
+    if (typeFilter !== "all") {
+      filtered = filtered.filter(m => m.type === typeFilter);
+    }
+
+    if (layerFilter !== "all") {
+      filtered = filtered.filter(m => m.memory_layer === layerFilter);
+    }
+
+    return filtered;
+  }, [memories, searchQuery, typeFilter, layerFilter]);
+
+  const paginatedMemories = useMemo(() => {
+    const start = (page - 1) * ITEMS_PER_PAGE;
+    return filteredMemories.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredMemories, page]);
+
+  const totalPages = Math.ceil(filteredMemories.length / ITEMS_PER_PAGE);
+
   return (
     <div className="flex h-full flex-col">
-      <div className="border-b border-border p-4">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Memory Timeline</h2>
-        <p className="text-xs text-muted-foreground mt-1">{memories.length} memories</p>
+      <div className="border-b border-border p-4 space-y-3">
+        <div>
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Memory Timeline</h2>
+          <p className="text-xs text-muted-foreground mt-1">
+            {filteredMemories.length} of {memories.length} memories
+          </p>
+        </div>
+        <div className="relative">
+          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search memories..."
+            value={searchQuery}
+            onChange={(e) => { setSearchQuery(e.target.value); setPage(1); }}
+            className="pl-8 pr-8 h-8 text-xs"
+          />
+          {searchQuery && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute right-1 top-1 h-6 w-6"
+              onClick={() => { setSearchQuery(""); setPage(1); }}
+            >
+              <X className="h-3 w-3" />
+            </Button>
+          )}
+        </div>
+        <div className="flex gap-2">
+          <Select value={typeFilter} onValueChange={(v) => { setTypeFilter(v); setPage(1); }}>
+            <SelectTrigger className="h-8 text-xs flex-1">
+              <SelectValue placeholder="Type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Types</SelectItem>
+              <SelectItem value="note">Note</SelectItem>
+              <SelectItem value="code">Code</SelectItem>
+              <SelectItem value="decision">Decision</SelectItem>
+              <SelectItem value="conversation">Conversation</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={layerFilter} onValueChange={(v) => { setLayerFilter(v); setPage(1); }}>
+            <SelectTrigger className="h-8 text-xs flex-1">
+              <SelectValue placeholder="Layer" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Layers</SelectItem>
+              <SelectItem value="working">Working</SelectItem>
+              <SelectItem value="episodic">Episodic</SelectItem>
+              <SelectItem value="semantic">Semantic</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
       <ScrollArea className="flex-1 scrollbar-thin">
         <div className="p-3 space-y-2">
           <AnimatePresence>
-            {memories.map((memory, i) => {
+            {paginatedMemories.map((memory, i) => {
               const Icon = typeIcons[memory.type] || Brain;
               return (
                 <motion.div
@@ -86,15 +174,44 @@ export function MemoryTimeline({ memories, selectedId, onSelect, onDelete }: Pro
               );
             })}
           </AnimatePresence>
-          {memories.length === 0 && (
+          {paginatedMemories.length === 0 && (
             <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
               <Brain className="h-10 w-10 mb-3 opacity-30" />
-              <p className="text-sm">No memories yet</p>
-              <p className="text-xs mt-1">Start by adding your first memory</p>
+              <p className="text-sm">
+                {memories.length === 0 ? "No memories yet" : "No memories match your filters"}
+              </p>
+              <p className="text-xs mt-1">
+                {memories.length === 0 ? "Start by adding your first memory" : "Try adjusting your search or filters"}
+              </p>
             </div>
           )}
         </div>
       </ScrollArea>
+      {totalPages > 1 && (
+        <div className="border-t border-border p-3 flex items-center justify-between">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setPage(p => Math.max(1, p - 1))}
+            disabled={page === 1}
+            className="h-7 text-xs"
+          >
+            Previous
+          </Button>
+          <span className="text-xs text-muted-foreground">
+            Page {page} of {totalPages}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+            disabled={page === totalPages}
+            className="h-7 text-xs"
+          >
+            Next
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

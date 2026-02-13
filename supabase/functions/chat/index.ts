@@ -6,6 +6,29 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+// Simple in-memory rate limiting (for MVP; use Redis/KV for production scale)
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT_REQUESTS = 30; // requests per hour
+const RATE_LIMIT_WINDOW = 60 * 60 * 1000; // 1 hour in ms
+
+function checkRateLimit(userId: string): { allowed: boolean; remaining: number; resetAt: number } {
+  const now = Date.now();
+  const userLimit = rateLimitMap.get(userId);
+
+  if (!userLimit || now > userLimit.resetAt) {
+    rateLimitMap.set(userId, { count: 1, resetAt: now + RATE_LIMIT_WINDOW });
+    return { allowed: true, remaining: RATE_LIMIT_REQUESTS - 1, resetAt: now + RATE_LIMIT_WINDOW };
+  }
+
+  if (userLimit.count >= RATE_LIMIT_REQUESTS) {
+    return { allowed: false, remaining: 0, resetAt: userLimit.resetAt };
+  }
+
+  userLimit.count++;
+  rateLimitMap.set(userId, userLimit);
+  return { allowed: true, remaining: RATE_LIMIT_REQUESTS - userLimit.count, resetAt: userLimit.resetAt };
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -16,46 +39,73 @@ serve(async (req) => {
 
     // Get user's memories for context
     const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const token = authHeader.replace("Bearer ", "");
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     
+    // Get user from token
+    const anonClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!);
+    const { data: { user }, error: authError } = await anonClient.auth.getUser(token);
+    
+    if (authError || !user) {
+      return new Response(JSON.stringify({ error: "Invalid token" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Rate limiting
+    const rateLimit = checkRateLimit(user.id);
+    if (!rateLimit.allowed) {
+      const resetSeconds = Math.ceil((rateLimit.resetAt - Date.now()) / 1000);
+      return new Response(JSON.stringify({ 
+        error: "Rate limit exceeded", 
+        message: `Too many requests. Please try again in ${Math.ceil(resetSeconds / 60)} minutes.` 
+      }), {
+        status: 429,
+        headers: { 
+          ...corsHeaders, 
+          "Content-Type": "application/json",
+          "X-RateLimit-Limit": String(RATE_LIMIT_REQUESTS),
+          "X-RateLimit-Remaining": "0",
+          "X-RateLimit-Reset": String(Math.ceil(rateLimit.resetAt / 1000)),
+        },
+      });
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseKey);
+    
     let memoryContext = "";
     let inspectorData = null;
-
-    if (authHeader) {
-      const token = authHeader.replace("Bearer ", "");
-      const supabase = createClient(supabaseUrl, supabaseKey);
       
-      // Get user from token
-      const anonClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!);
-      const { data: { user } } = await anonClient.auth.getUser(token);
-      
-      if (user) {
-        const { data: memories } = await supabase
-          .from("memories")
-          .select("title, content, type, memory_layer, tags, created_at")
-          .eq("user_id", user.id)
-          .order("created_at", { ascending: false })
-          .limit(20);
+    const { data: memories } = await supabase
+      .from("memories")
+      .select("title, content, type, memory_layer, tags, created_at")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(20);
 
-        if (memories && memories.length > 0) {
-          const retrieved = memories.map((m, i) => ({
-            id: `mem-${i}`,
-            title: m.title,
-            layer: m.memory_layer,
-            relevance: Math.max(0.3, 1 - i * 0.04),
-          }));
+    if (memories && memories.length > 0) {
+      const retrieved = memories.map((m, i) => ({
+        id: `mem-${i}`,
+        title: m.title,
+        layer: m.memory_layer,
+        relevance: Math.max(0.3, 1 - i * 0.04),
+      }));
 
-          inspectorData = {
-            retrievedMemories: retrieved.slice(0, 8),
-            reasoning: `Retrieved ${memories.length} memories. Most recent and relevant memories were prioritized based on recency and type match.`,
-          };
+      inspectorData = {
+        retrievedMemories: retrieved.slice(0, 8),
+        reasoning: `Retrieved ${memories.length} memories. Most recent and relevant memories were prioritized based on recency and type match.`,
+      };
 
-          memoryContext = memories.map((m, i) => 
-            `[Memory ${i + 1}: "${m.title}" | Type: ${m.type} | Layer: ${m.memory_layer} | Tags: ${(m.tags || []).join(", ")}]\n${m.content}`
-          ).join("\n\n---\n\n");
-        }
-      }
+      memoryContext = memories.map((m, i) => 
+        `[Memory ${i + 1}: "${m.title}" | Type: ${m.type} | Layer: ${m.memory_layer} | Tags: ${(m.tags || []).join(", ")}]\n${m.content}`
+      ).join("\n\n---\n\n");
     }
 
     const systemPrompt = `You are the Hybrid Memory System AI — a second brain for developers. You help users recall, connect, and reason about their stored memories (notes, code snippets, decisions, conversations).
@@ -104,6 +154,9 @@ ${memoryContext ? `## User's Memories:\n\n${memoryContext}\n\n## Instructions:` 
     const headers: Record<string, string> = {
       ...corsHeaders,
       "Content-Type": "text/event-stream",
+      "X-RateLimit-Limit": String(RATE_LIMIT_REQUESTS),
+      "X-RateLimit-Remaining": String(rateLimit.remaining),
+      "X-RateLimit-Reset": String(Math.ceil(rateLimit.resetAt / 1000)),
     };
     if (inspectorData) {
       headers["X-Memory-Inspector"] = JSON.stringify(inspectorData);

@@ -33,6 +33,18 @@ export function useMemories() {
     onError: (err: Error) => toast.error(err.message),
   });
 
+  const updateMemory = useMutation({
+    mutationFn: async ({ id, ...updates }: { id: string; title?: string; content?: string; type?: MemoryType; memory_layer?: MemoryLayer; tags?: string[] }) => {
+      const { error } = await supabase.from("memories").update(updates).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["memories"] });
+      toast.success("Memory updated!");
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+
   const deleteMemory = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("memories").delete().eq("id", id);
@@ -45,5 +57,5 @@ export function useMemories() {
     onError: (err: Error) => toast.error(err.message),
   });
 
-  return { memories: query.data ?? [], isLoading: query.isLoading, addMemory, deleteMemory };
+  return { memories: query.data ?? [], isLoading: query.isLoading, addMemory, updateMemory, deleteMemory };
 }
