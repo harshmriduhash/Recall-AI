@@ -22,6 +22,7 @@ export function AddMemoryForm({ onSubmit, isSubmitting }: Props) {
   const [tagInput, setTagInput] = useState("");
   const [isRecording, setIsRecording] = useState(false);
   const recognitionRef = useRef<any>(null);
+  const transcriptRef = useRef<string>(""); // accumulated final transcript
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -42,18 +43,41 @@ export function AddMemoryForm({ onSubmit, isSubmitting }: Props) {
       setIsRecording(false);
       return;
     }
+    if (!window.isSecureContext) {
+      toast.error("Voice input requires HTTPS or localhost for security.");
+      return;
+    }
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SR) { toast.error("Speech recognition not supported in this browser"); return; }
+    if (!SR) {
+      toast.error("Voice not supported in this browser. Try Chrome or Edge.");
+      return;
+    }
+    transcriptRef.current = content; // start from current content so we append
     const recognition = new SR();
     recognition.continuous = true;
     recognition.interimResults = true;
+    recognition.lang = "en-US";
     recognition.onresult = (e: any) => {
-      let transcript = "";
-      for (let i = 0; i < e.results.length; i++) transcript += e.results[i][0].transcript;
-      setContent(transcript);
+      let interim = "";
+      for (let i = 0; i < e.results.length; i++) {
+        const transcript = e.results[i][0]?.transcript ?? "";
+        if (e.results[i].isFinal) {
+          transcriptRef.current += transcript + " ";
+        } else {
+          interim += transcript;
+        }
+      }
+      setContent((transcriptRef.current + interim).trim());
     };
-    recognition.onerror = () => { setIsRecording(false); toast.error("Voice recognition error"); };
-    recognition.onend = () => setIsRecording(false);
+    recognition.onerror = (e: any) => {
+      setIsRecording(false);
+      if (e.error === "not-allowed") toast.error("Microphone access denied.");
+      else toast.error("Voice recognition error. Try again.");
+    };
+    recognition.onend = () => {
+      setIsRecording(false);
+      setContent(transcriptRef.current.trim());
+    };
     recognition.start();
     recognitionRef.current = recognition;
     setIsRecording(true);
@@ -63,10 +87,20 @@ export function AddMemoryForm({ onSubmit, isSubmitting }: Props) {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 5 * 1024 * 1024) { toast.error("File must be under 5MB"); return; }
-    const text = await file.text();
-    setContent(text);
-    if (!title) setTitle(file.name.replace(/\.[^/.]+$/, ""));
-    toast.success("File content loaded");
+    const ext = file.name.split(".").pop()?.toLowerCase();
+    if (ext && !["md", "txt", "markdown"].includes(ext)) {
+      toast.error("Only .md and .txt files are supported.");
+      return;
+    }
+    try {
+      const text = await file.text();
+      setContent(text);
+      if (!title) setTitle(file.name.replace(/\.[^/.]+$/, ""));
+      toast.success("File content loaded");
+    } catch {
+      toast.error("Could not read file. Use .md or .txt.");
+    }
+    e.target.value = "";
   };
 
   return (
@@ -82,7 +116,7 @@ export function AddMemoryForm({ onSubmit, isSubmitting }: Props) {
             <Upload className="h-4 w-4" />
           </Button>
         </div>
-        <input ref={fileInputRef} type="file" accept=".md,.txt,.pdf" className="hidden" onChange={handleFile} />
+        <input ref={fileInputRef} type="file" accept=".md,.txt,text/plain,text/markdown" className="hidden" onChange={handleFile} />
       </div>
       <div className="flex gap-3">
         <Select value={type} onValueChange={(v) => setType(v as MemoryType)}>
