@@ -108,7 +108,7 @@ serve(async (req) => {
       ).join("\n\n---\n\n");
     }
 
-    const systemPrompt = `You are the Hybrid Memory System AI — a second brain for developers. You help users recall, connect, and reason about their stored memories (notes, code snippets, decisions, conversations).
+    const systemPrompt = `You are Recall AI — a second brain for developers. You help users recall, connect, and reason about their stored memories (notes, code snippets, decisions, conversations).
 
 ${memoryContext ? `## User's Memories:\n\n${memoryContext}\n\n## Instructions:` : "## No memories found yet. Encourage the user to add some memories first."}
 - When answering, cite specific memory titles in bold (e.g., **"Memory Title"**)

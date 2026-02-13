@@ -1,15 +1,15 @@
 
 
-# Hybrid Memory System (HMS) — MVP Plan
+# Recall — MVP Plan
 
-**"The Second Brain for Developers — with inspectable, layered memory intelligence"**
+**"Your Second Brain — with inspectable, layered memory intelligence"**
 
 ---
 
 ## 1. Authentication & User Management
 - Real email/password signup and login using Supabase Auth
 - Each user gets their own isolated memory space
-- Clean, minimal login/signup page with the HMS branding
+- Clean, minimal login/signup page with the Recall branding
 - Profile creation on signup (name, email)
 
 ---

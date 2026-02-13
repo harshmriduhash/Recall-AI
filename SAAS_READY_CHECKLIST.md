@@ -13,7 +13,7 @@
 
 ## Multi-tenant & data
 
-- [ ] Data isolated per user (RLS ✅ for HMS)
+- [ ] Data isolated per user (RLS ✅ for Recall)
 - [ ] No cross-tenant data leakage in API or Edge Functions
 - [ ] Export and delete-my-data flows (GDPR, CCPA) implemented or planned
 - [ ] Backup and restore tested (Supabase backups on paid plan)

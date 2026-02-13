@@ -1,6 +1,6 @@
 # MVP Strategy & Roadmap — 100 Users
 
-**Goal:** Make HMS a reliable, shippable MVP that can support **at least 100 real users** without critical breakage or trust issues.
+**Goal:** Make Recall a reliable, shippable MVP that can support **at least 100 real users** without critical breakage or trust issues.
 
 ---
 
@@ -127,7 +127,7 @@ So: **feature-wise it’s close; for 100 users you need a few hardening and ops 
 |---|------|--------|------|
 | 2.1 | Deploy to production (e.g. Vercel/Netlify); env vars and Supabase URLs correct | Dev | [ ] |
 | 2.2 | Smoke test: sign up → confirm email → add memory (text + voice on HTTPS) → chat → sign out | Dev | [ ] |
-| 2.3 | Publish a short “How to use HMS” (README or in-app copy): voice = Chrome/Edge + HTTPS | Dev | [ ] |
+| 2.3 | Publish a short “How to use Recall” (README or in-app copy): voice = Chrome/Edge + HTTPS | Dev | [ ] |
 | 2.4 | Create invite/waitlist flow (e.g. Typeform, Google Form, or simple landing + email list) | Marketing/Dev | [ ] |
 | 2.5 | Invite first 10–20 users; collect feedback and fix top issues | Product | [ ] |
 | 2.6 | Scale to 50, then 100; monitor errors, rate limits, and “first memory” / “first chat” | Product/Ops | [ ] |

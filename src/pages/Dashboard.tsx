@@ -35,7 +35,7 @@ export default function Dashboard() {
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
             <Brain className="h-4 w-4 text-primary" />
           </div>
-          <span className="font-semibold text-sm">HMS</span>
+          <span className="font-semibold text-sm">Recall</span>
           <DemoDataLoader />
         </div>
         <div className="flex items-center gap-2">
@@ -179,7 +179,7 @@ export default function Dashboard() {
       <Dialog open={showHelp} onOpenChange={setShowHelp}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>How to use HMS</DialogTitle>
+            <DialogTitle>How to use Recall</DialogTitle>
             <DialogDescription>Your second brain for developers</DialogDescription>
           </DialogHeader>
           <ScrollArea className="max-h-[60vh] pr-4">

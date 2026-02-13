@@ -56,7 +56,7 @@ export default function Auth() {
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-primary/10 glow-primary">
             <Brain className="h-7 w-7 text-primary" />
           </div>
-          <CardTitle className="text-2xl font-bold tracking-tight">Hybrid Memory System</CardTitle>
+          <CardTitle className="text-2xl font-bold tracking-tight">Recall</CardTitle>
           <CardDescription className="text-muted-foreground">
             {isSignUp ? "Create your second brain" : "Welcome back to your second brain"}
           </CardDescription>

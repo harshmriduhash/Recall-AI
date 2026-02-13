@@ -1,7 +1,7 @@
 # Build Summary — Production-Ready MVP
 
 **Date:** February 13, 2026  
-**Goal:** Transform HMS into a complete, production-ready MVP for 100+ users
+**Goal:** Transform Recall into a complete, production-ready MVP for 100+ users
 
 ---
 
@@ -72,7 +72,7 @@
 - **What:** In-app help dialog
 - **Features:**
   - Help icon in header
-  - Comprehensive "How to use HMS" guide
+  - Comprehensive "How to use Recall" guide
   - Covers: adding memories, chat, search/filter, editing
   - Tips and best practices
 

@@ -1,8 +1,8 @@
-# Hybrid Memory System (HMS)
+# Recall
 
-**The second brain for developers.** Store, search, and reason about your knowledge with AI-powered memory intelligence.
+**Your second brain.** Store, search, and reason about your knowledge with AI-powered memory intelligence.
 
-HMS lets you capture notes, code snippets, decisions, and conversations in a structured way (with types and layers), then chat with an AI that uses **your** memories as context and shows you which memories were used (Memory Inspector).
+Recall lets you capture notes, code snippets, decisions, and conversations in a structured way (with types and layers), then chat with an AI that uses **your** memories as context and shows you which memories were used (Memory Inspector).
 
 ---
 
@@ -12,14 +12,14 @@ HMS lets you capture notes, code snippets, decisions, and conversations in a str
 - **Context loss** — When you switch projects or return after a while, you lose the “why” behind past choices. Reconstructing context is slow and error-prone.
 - **Non-inspectable AI** — Generic chatbots don’t use your private knowledge and can’t show which sources they used. You can’t trust or audit answers.
 
-HMS gives you one place to store **your** knowledge (memories), then an AI that reasons over **only** that knowledge and **shows** which memories it used (Memory Inspector). So you get answers grounded in your own notes and decisions, with transparency.
+Recall gives you one place to store **your** knowledge (memories), then an AI that reasons over **only** that knowledge and **shows** which memories it used (Memory Inspector). So you get answers grounded in your own notes and decisions, with transparency.
 
 ---
 
 ## How does this product solve the problem?
 
 1. **Structured capture** — You add memories with a type (note, code, decision, conversation), a layer (working / episodic / semantic), and tags. That structure makes it easier to retrieve and reason about them later.
-2. **Single source of truth** — All memories live in your HMS timeline. One search, one timeline, one chat that sees everything you’ve stored.
+2. **Single source of truth** — All memories live in your Recall timeline. One search, one timeline, one chat that sees everything you’ve stored.
 3. **AI over your data only** — The chat API loads **your** memories (using your session), sends them as context to the AI, and streams the answer. The AI is instructed to cite memory titles and say when something isn’t in your memories.
 4. **Transparency** — The Memory Inspector shows which memories were retrieved for each answer and a short reasoning note. You can verify and correct your knowledge base.
 5. **Low friction** — Text, voice (Web Speech API), and file upload (.md, .txt) let you capture quickly without leaving the app.
