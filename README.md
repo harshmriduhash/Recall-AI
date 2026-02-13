@@ -47,12 +47,14 @@ Exact time and cost savings depend on usage; the product is designed to reduce c
 
 ## Features
 
-- **Auth** — Email/password sign up and sign in (Supabase Auth). Each user has an isolated memory space.
-- **Memory timeline** — Left panel lists all memories (newest first) with type (note/code/decision/conversation), layer (working/episodic/semantic), and tags. Click to open a detail drawer.
-- **Add memories** — Title, content, type, layer, tags. Optional: voice input (Web Speech API) and file upload (.md, .txt).
-- **AI chat** — Ask questions about your memories. Responses stream and can cite memory titles. Memory Inspector (right panel) shows which memories were retrieved and why.
-- **Insights** — Right panel shows memory stats, layer distribution, top tags, and simple AI-generated insights.
-- **Demo data** — “Load Demo Data” button seeds sample memories for quick demos.
+- **Landing** (`/`) — Hero, features, how it works, CTA. Navbar (Log in / Get started), Footer (Product, Company, Legal). Redirects to `/dashboard` if logged in.
+- **Auth** (`/auth`) — Split-screen layout, sign up / sign in / forgot password; `?signup=1` for sign-up. Gradient mesh styling.
+- **Dashboard** (`/dashboard`) — Protected app; redirects to `/auth` if not logged in. Auth: email/password, forgot password, per-user isolation.
+- **Memory timeline** — Search, filters (type, layer), pagination (50/page). Shimmer loading. Click memory for detail drawer; edit or delete.
+- **Add memories** — Title, content, type, layer, tags; voice (Chrome/Edge + HTTPS) and file upload (.md, .txt).
+- **Edit memories** — Update from memory detail drawer.
+- **AI chat** — Streamed responses; Memory Inspector; rate limited (e.g. 30/user/hour).
+- **Insights** — Stats, layer distribution, top tags, AI insights. **Demo data** — "Load Demo Data" button. **Help** — In-app "How to use Recall" dialog.
 
 ---
 
@@ -74,8 +76,9 @@ High-level layers and responsibilities:
 ┌─────────────────────────────────────────────────────────────────────────┐
 │  Presentation (Browser)                                                 │
 │  React 18 + TypeScript + Vite + Tailwind + shadcn/ui                    │
-│  • Pages: Index (gate), Auth, Dashboard, NotFound                        │
-│  • Dashboard: MemoryTimeline, AddMemoryForm, ChatPanel, InsightsPanel    │
+│  • Pages: Landing (/), Auth (/auth), DashboardGuard + Dashboard (/dashboard), NotFound │
+│  • Landing: Navbar, Hero, Features, How it works, CTA, Footer              │
+│  • Dashboard: MemoryTimeline, AddMemoryForm, EditMemoryForm, ChatPanel, InsightsPanel   │
 │  • State: React Query (memories), Auth context (user/session)           │
 └─────────────────────────────────────────────────────────────────────────┘
                                     │
@@ -101,7 +104,7 @@ High-level layers and responsibilities:
                                     └───────────────────────────────────┘
 ```
 
-- **Frontend** is a SPA: auth gate at `/`, `/auth` for login/signup, dashboard at `/` when authenticated. All data access is either via Supabase client (auth + DB) or the chat HTTP API.
+- **Frontend** is a SPA: **Landing** at `/` (redirects to `/dashboard` if logged in), **Auth** at `/auth`, **Dashboard** at `/dashboard` (protected). All data access is via Supabase client (auth + DB) or the chat HTTP API. UI includes shimmer loaders, circular page loader, gradient mesh backgrounds, and Framer Motion animations.
 - **Backend** is Supabase: Auth for identity, Postgres for `profiles` and `memories`, Edge Function for chat. No separate app server; Supabase handles API and DB.
 - **AI** is external (Lovable AI gateway, Gemini). The Edge Function is the only component that talks to the AI and injects user memories into the prompt.
 
@@ -167,29 +170,33 @@ mvp-launchpad/
 ├── index.html
 ├── src/
 │   ├── main.tsx              # Entry; mounts App
-│   ├── App.tsx               # Providers + React Router (/, /auth, 404)
-│   ├── index.css             # Tailwind + theme variables
+│   ├── App.tsx               # Providers + React Router (/, /auth, /dashboard, 404)
+│   ├── index.css             # Tailwind + theme variables, gradient-mesh, shimmer utilities
 │   ├── pages/
-│   │   ├── Index.tsx         # Auth gate → Dashboard or redirect to /auth
-│   │   ├── Auth.tsx          # Sign in / Sign up
-│   │   ├── Dashboard.tsx     # Main app: timeline, chat, add memory, insights
-│   │   └── NotFound.tsx      # 404
+│   │   ├── Landing.tsx        # Public homepage: hero, features, CTA, footer; redirects to /dashboard if logged in
+│   │   ├── Auth.tsx          # Sign in / Sign up / Forgot password (split layout, gradient mesh)
+│   │   ├── DashboardGuard.tsx# Protects /dashboard; shows PageLoader or redirects to /auth
+│   │   ├── Dashboard.tsx     # Main app: timeline, chat, add/edit memory, insights, help dialog
+│   │   └── NotFound.tsx      # 404 with gradient styling
 │   ├── components/
-│   │   ├── dashboard/        # MemoryTimeline, AddMemoryForm, ChatPanel, InsightsPanel, DemoDataLoader
-│   │   └── ui/               # shadcn components
+│   │   ├── landing/          # Navbar, Footer
+│   │   ├── dashboard/        # MemoryTimeline, AddMemoryForm, EditMemoryForm, ChatPanel, InsightsPanel, DemoDataLoader
+│   │   ├── ui/               # shadcn components + shimmer.tsx, page-loader.tsx (spinner/pulse/dots/circular)
+│   │   └── ErrorBoundary.tsx # Global error fallback UI
 │   ├── hooks/
-│   │   ├── useAuth.tsx       # Auth context (user, signIn, signUp, signOut)
-│   │   └── useMemories.ts    # React Query: list, add, delete memories
+│   │   ├── useAuth.tsx       # Auth context (user, signIn, signUp, resetPassword, signOut)
+│   │   └── useMemories.ts    # React Query: list, add, update, delete memories
 │   ├── integrations/supabase/
 │   │   ├── client.ts         # Supabase client (env: VITE_SUPABASE_*)
-│   │   └── types.ts         # DB types
+│   │   └── types.ts          # DB types
 │   └── types/
-│       └── memory.ts        # Memory, ChatMessage, MemoryInspectorData
+│       └── memory.ts         # Memory, ChatMessage, MemoryInspectorData
 ├── supabase/
-│   ├── config.toml           # Project + function config (e.g. verify_jwt)
-│   ├── migrations/          # profiles + memories tables, RLS, triggers, indexes
+│   ├── config.toml           # Project + function config (verify_jwt = true for chat)
+│   ├── migrations/           # profiles + memories tables, RLS, triggers, indexes
 │   └── functions/
-│       └── chat/            # Edge function: loads user memories, calls AI, streams response
+│       └── chat/             # Edge function: JWT auth, rate limit, load memories, AI stream, inspector header
+├── docs/                     # BUILD_SUMMARY.md, MVP_STRATEGY_AND_ROADMAP.md
 ├── public/
 ├── vite.config.ts
 ├── tailwind.config.ts
@@ -242,7 +249,7 @@ VITE_SUPABASE_PROJECT_ID=<your-project-id>
 npm run dev
 ```
 
-App runs at `http://localhost:8080`. Sign up, add memories (or load demo data), then use the chat.
+App runs at `http://localhost:8080`. You’ll see the **landing page** first. Use **Get started free** or **Log in** to go to the auth page, then sign up or sign in. After login you’re in the **dashboard** — add memories (or load demo data), then use the chat.
 
 ### 5. Build for production
 
@@ -275,21 +282,23 @@ npm run preview   # optional: local preview of build
 
 ## Production readiness
 
-Summary of what’s in place and what to do before real users:
+Summary of what’s in place and what to do before scaling:
 
 | Area | Status | Notes |
 |------|--------|--------|
-| Auth & RLS | ✅ | Email/password, per-user data isolation |
-| Chat with user context | ✅ | Chat now sends the user’s session JWT so the AI gets their memories |
+| Landing & auth UX | ✅ | Public landing, navbar, footer; split-screen auth with gradient mesh |
+| Auth & RLS | ✅ | Email/password, forgot password, per-user data isolation |
+| Chat with user context | ✅ | Session JWT; rate limiting (e.g. 30/user/hour) in Edge Function |
+| JWT verification | ✅ | `verify_jwt = true` for chat in production config |
 | Env / secrets | ✅ | `.env` in `.gitignore`; use env vars in hosting |
-| Error handling | ⚠️ | Toasts for auth/chat; add global error boundary and retries if desired |
-| Rate limiting | ⚠️ | Handled by AI gateway (429); consider rate limiting per user on your side |
-| File upload | ⚠️ | Add Memory accepts .md, .txt, .pdf; only text files are read correctly (PDF not parsed) |
+| Error handling | ✅ | Global ErrorBoundary; toasts for auth/chat |
+| File upload | ✅ | .md and .txt only; validation and error handling |
+| Loading states | ✅ | PageLoader (circular/spinner/pulse/dots), shimmer in timeline |
 | Tests | ⚠️ | Placeholder test only; add unit/integration tests for critical paths |
 | Accessibility | ⚠️ | Basic semantics; add ARIA/labels and keyboard nav where needed |
-| Monitoring | ❌ | Add logging/APM and optional Sentry (or similar) for production |
+| Monitoring | ⚠️ | Add Sentry or similar (placeholder in ErrorBoundary) |
 
-**Verdict:** The app is suitable for a **controlled MVP or beta** (invite-only, low traffic). Before opening to general production users, address: env and JWT verification, file upload behavior (or remove PDF), tests, and monitoring.
+**Verdict:** Suitable for a **controlled MVP or beta**. For general production, add tests, monitoring, and optional email confirmation in Supabase.
 
 ---
 
