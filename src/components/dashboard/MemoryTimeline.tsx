@@ -8,6 +8,7 @@ import { Brain, Code, GitBranch, MessageSquare, Trash2, Search, X } from "lucide
 import { formatDistanceToNow } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
+import { Shimmer } from "@/components/ui/shimmer";
 
 const typeIcons: Record<string, React.ElementType> = {
   note: Brain,
@@ -34,11 +35,12 @@ interface Props {
   selectedId?: string;
   onSelect: (memory: Memory) => void;
   onDelete: (id: string) => void;
+  isLoading?: boolean;
 }
 
 const ITEMS_PER_PAGE = 50;
 
-export function MemoryTimeline({ memories, selectedId, onSelect, onDelete }: Props) {
+export function MemoryTimeline({ memories, selectedId, onSelect, onDelete, isLoading }: Props) {
   const [searchQuery, setSearchQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [layerFilter, setLayerFilter] = useState<string>("all");
@@ -130,8 +132,23 @@ export function MemoryTimeline({ memories, selectedId, onSelect, onDelete }: Pro
       </div>
       <ScrollArea className="flex-1 scrollbar-thin">
         <div className="p-3 space-y-2">
+          {isLoading && (
+            <div className="space-y-3 p-2">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="rounded-lg border border-border/50 p-3 space-y-2">
+                  <Shimmer className="h-4 w-32" />
+                  <Shimmer className="h-3 w-full" />
+                  <Shimmer className="h-3 w-3/4" />
+                  <div className="flex gap-2 mt-2">
+                    <Shimmer className="h-5 w-16" />
+                    <Shimmer className="h-5 w-20" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
           <AnimatePresence>
-            {paginatedMemories.map((memory, i) => {
+            {!isLoading && paginatedMemories.map((memory, i) => {
               const Icon = typeIcons[memory.type] || Brain;
               return (
                 <motion.div
@@ -174,7 +191,7 @@ export function MemoryTimeline({ memories, selectedId, onSelect, onDelete }: Pro
               );
             })}
           </AnimatePresence>
-          {paginatedMemories.length === 0 && (
+          {!isLoading && paginatedMemories.length === 0 && (
             <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
               <Brain className="h-10 w-10 mb-3 opacity-30" />
               <p className="text-sm">
@@ -187,7 +204,7 @@ export function MemoryTimeline({ memories, selectedId, onSelect, onDelete }: Pro
           )}
         </div>
       </ScrollArea>
-      {totalPages > 1 && (
+      {!isLoading && totalPages > 1 && (
         <div className="border-t border-border p-3 flex items-center justify-between">
           <Button
             variant="outline"

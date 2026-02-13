@@ -9,6 +9,7 @@ import { InsightsPanel } from "@/components/dashboard/InsightsPanel";
 import { DemoDataLoader } from "@/components/dashboard/DemoDataLoader";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Link } from "react-router-dom";
 import { Brain, LogOut, MessageSquare, Plus, PanelLeftClose, PanelLeft, PanelRightClose, PanelRight, Edit, HelpCircle } from "lucide-react";
 import { Memory, MemoryInspectorData, MemoryType, MemoryLayer } from "@/types/memory";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
@@ -32,10 +33,12 @@ export default function Dashboard() {
       {/* Header */}
       <header className="flex items-center justify-between border-b border-border px-4 py-2.5 shrink-0">
         <div className="flex items-center gap-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
-            <Brain className="h-4 w-4 text-primary" />
-          </div>
-          <span className="font-semibold text-sm">Recall</span>
+          <Link to="/dashboard" className="flex items-center gap-2 hover:opacity-90 transition-opacity">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+              <Brain className="h-4 w-4 text-primary" />
+            </div>
+            <span className="font-semibold text-sm">Recall</span>
+          </Link>
           <DemoDataLoader />
         </div>
         <div className="flex items-center gap-2">
@@ -65,6 +68,7 @@ export default function Dashboard() {
               selectedId={selectedMemory?.id}
               onSelect={setSelectedMemory}
               onDelete={(id) => deleteMemory.mutate(id)}
+              isLoading={isLoading}
             />
           </aside>
         )}
