@@ -1,4 +1,7 @@
 project_id = "ylnrfxrhnzfyfrrzbmag"
 
 [functions.chat]
-verify_jwt = true
+verify_jwt = false
+
+[functions.suggest-tags]
+verify_jwt = false
