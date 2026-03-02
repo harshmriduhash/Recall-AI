@@ -82,15 +82,26 @@ export function AddMemoryForm({ onSubmit, isSubmitting }: Props) {
       setIsRecording(false);
       return;
     }
-    if (!window.isSecureContext) {
-      toast.error("Voice input requires HTTPS or localhost for security.");
-      return;
-    }
+
+    // Check if we're in an iframe (preview mode)
+    const isInIframe = window.self !== window.top;
+
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SR) {
       toast.error("Voice not supported in this browser. Try Chrome or Edge.");
       return;
     }
+
+    if (isInIframe) {
+      toast.error("Voice input is not available in preview mode due to browser security. Please publish the app or open it in a new tab to use voice input.");
+      return;
+    }
+
+    if (!window.isSecureContext) {
+      toast.error("Voice input requires HTTPS or localhost.");
+      return;
+    }
+
     transcriptRef.current = content;
     const recognition = new SR();
     recognition.continuous = true;
@@ -110,15 +121,15 @@ export function AddMemoryForm({ onSubmit, isSubmitting }: Props) {
     };
     recognition.onerror = (e: any) => {
       setIsRecording(false);
-      console.error("SpeechRecognition error:", e.error, e);
-      const errorMessages: Record<string, string> = {
-        "not-allowed": "Microphone access denied. Please allow microphone permission in your browser settings.",
-        "no-speech": "No speech detected. Please try speaking again.",
-        "audio-capture": "No microphone found. Please connect a microphone and try again.",
-        "network": "Network error during voice recognition. Check your connection.",
-        "aborted": "Voice input was cancelled.",
+      console.error("SpeechRecognition error:", e.error);
+      const msgs: Record<string, string> = {
+        "not-allowed": "Microphone access denied. Allow it in browser settings.",
+        "no-speech": "No speech detected. Try again.",
+        "audio-capture": "No microphone found. Connect one and retry.",
+        "network": "Network error. Check your connection.",
+        "aborted": "Voice input cancelled.",
       };
-      toast.error(errorMessages[e.error] || `Voice error: ${e.error || "unknown"}. Try Chrome or Edge on HTTPS.`);
+      toast.error(msgs[e.error] || `Voice error: ${e.error || "unknown"}`);
     };
     recognition.onend = () => {
       setIsRecording(false);
