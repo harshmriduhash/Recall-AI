@@ -23,10 +23,11 @@ export function AddMemoryForm({ onSubmit, isSubmitting }: Props) {
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
   const [isRecording, setIsRecording] = useState(false);
+  const [isTranscribing, setIsTranscribing] = useState(false);
   const [suggestingTags, setSuggestingTags] = useState(false);
   const [suggestedTags, setSuggestedTags] = useState<string[]>([]);
-  const recognitionRef = useRef<any>(null);
-  const transcriptRef = useRef<string>("");
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -76,68 +77,72 @@ export function AddMemoryForm({ onSubmit, isSubmitting }: Props) {
     setSuggestedTags(suggestedTags.filter(t => t !== tag));
   };
 
-  const toggleVoice = () => {
+  const toggleVoice = async () => {
     if (isRecording) {
-      recognitionRef.current?.stop();
-      setIsRecording(false);
+      // Stop recording — this triggers the onstop handler
+      mediaRecorderRef.current?.stop();
       return;
     }
 
-    // Check if we're in an iframe (preview mode)
-    const isInIframe = window.self !== window.top;
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream, { mimeType: "audio/webm" });
+      audioChunksRef.current = [];
 
-    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SR) {
-      toast.error("Voice not supported in this browser. Try Chrome or Edge.");
-      return;
-    }
-
-    if (isInIframe) {
-      toast.error("Voice input is not available in preview mode due to browser security. Please publish the app or open it in a new tab to use voice input.");
-      return;
-    }
-
-    if (!window.isSecureContext) {
-      toast.error("Voice input requires HTTPS or localhost.");
-      return;
-    }
-
-    transcriptRef.current = content;
-    const recognition = new SR();
-    recognition.continuous = true;
-    recognition.interimResults = true;
-    recognition.lang = "en-US";
-    recognition.onresult = (e: any) => {
-      let interim = "";
-      for (let i = 0; i < e.results.length; i++) {
-        const transcript = e.results[i][0]?.transcript ?? "";
-        if (e.results[i].isFinal) {
-          transcriptRef.current += transcript + " ";
-        } else {
-          interim += transcript;
-        }
-      }
-      setContent((transcriptRef.current + interim).trim());
-    };
-    recognition.onerror = (e: any) => {
-      setIsRecording(false);
-      console.error("SpeechRecognition error:", e.error);
-      const msgs: Record<string, string> = {
-        "not-allowed": "Microphone access denied. Allow it in browser settings.",
-        "no-speech": "No speech detected. Try again.",
-        "audio-capture": "No microphone found. Connect one and retry.",
-        "network": "Network error. Check your connection.",
-        "aborted": "Voice input cancelled.",
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) audioChunksRef.current.push(e.data);
       };
-      toast.error(msgs[e.error] || `Voice error: ${e.error || "unknown"}`);
-    };
-    recognition.onend = () => {
-      setIsRecording(false);
-      setContent(transcriptRef.current.trim());
-    };
-    recognition.start();
-    recognitionRef.current = recognition;
-    setIsRecording(true);
+
+      mediaRecorder.onstop = async () => {
+        // Stop all tracks to release mic
+        stream.getTracks().forEach((t) => t.stop());
+        setIsRecording(false);
+
+        const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+        if (audioBlob.size < 1000) {
+          toast.error("Recording too short. Try again.");
+          return;
+        }
+
+        setIsTranscribing(true);
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          const formData = new FormData();
+          formData.append("audio", audioBlob, "recording.webm");
+
+          const resp = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/transcribe`, {
+            method: "POST",
+            headers: { Authorization: `Bearer ${session?.access_token}` },
+            body: formData,
+          });
+
+          const data = await resp.json();
+          if (data.transcript) {
+            setContent((prev) => (prev ? prev + " " + data.transcript : data.transcript));
+            toast.success("Voice transcribed!");
+          } else {
+            toast.error(data.error || "Could not transcribe audio");
+          }
+        } catch {
+          toast.error("Transcription failed. Try again.");
+        }
+        setIsTranscribing(false);
+      };
+
+      mediaRecorder.start();
+      mediaRecorderRef.current = mediaRecorder;
+      setIsRecording(true);
+      toast.info("Recording... Click mic again to stop.");
+    } catch (err: any) {
+      console.error("Mic error:", err);
+      if (err.name === "NotAllowedError") {
+        toast.error("Microphone access denied. Allow it in browser settings.");
+      } else if (err.name === "NotFoundError") {
+        toast.error("No microphone found. Connect one and retry.");
+      } else {
+        toast.error("Could not access microphone.");
+      }
+    }
   };
 
   const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -172,8 +177,8 @@ export function AddMemoryForm({ onSubmit, isSubmitting }: Props) {
       <div className="relative">
         <Textarea placeholder="Write your memory, paste content, or use voice..." value={content} onChange={e => setContent(e.target.value)} className="min-h-[140px] pr-20" required />
         <div className="absolute right-2 top-2 flex flex-col gap-1">
-          <Button type="button" size="icon" variant={isRecording ? "destructive" : "ghost"} className="h-8 w-8" onClick={toggleVoice}>
-            {isRecording ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+          <Button type="button" size="icon" variant={isRecording ? "destructive" : "ghost"} className="h-8 w-8" onClick={toggleVoice} disabled={isTranscribing}>
+            {isTranscribing ? <Loader2 className="h-4 w-4 animate-spin" /> : isRecording ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
           </Button>
           <Button type="button" size="icon" variant="ghost" className="h-8 w-8" onClick={() => fileInputRef.current?.click()}>
             <Upload className="h-4 w-4" />
