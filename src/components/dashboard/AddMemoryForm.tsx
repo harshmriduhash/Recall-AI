@@ -110,8 +110,15 @@ export function AddMemoryForm({ onSubmit, isSubmitting }: Props) {
     };
     recognition.onerror = (e: any) => {
       setIsRecording(false);
-      if (e.error === "not-allowed") toast.error("Microphone access denied.");
-      else toast.error("Voice recognition error. Try again.");
+      console.error("SpeechRecognition error:", e.error, e);
+      const errorMessages: Record<string, string> = {
+        "not-allowed": "Microphone access denied. Please allow microphone permission in your browser settings.",
+        "no-speech": "No speech detected. Please try speaking again.",
+        "audio-capture": "No microphone found. Please connect a microphone and try again.",
+        "network": "Network error during voice recognition. Check your connection.",
+        "aborted": "Voice input was cancelled.",
+      };
+      toast.error(errorMessages[e.error] || `Voice error: ${e.error || "unknown"}. Try Chrome or Edge on HTTPS.`);
     };
     recognition.onend = () => {
       setIsRecording(false);
