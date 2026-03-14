@@ -2,9 +2,11 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, Loader2, Bot, User } from "lucide-react";
+import { Send, Bot, User } from "lucide-react";
 import { motion } from "framer-motion";
 import ReactMarkdown from "react-markdown";
+import { AIThinkingInline } from "@/components/ui/ai-thinking";
+import { EmptyState } from "@/components/ui/empty-state";
 import type { ChatMessage, MemoryInspectorData } from "@/types/memory";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -55,7 +57,6 @@ export function ChatPanel({ onInspectorUpdate }: Props) {
       if (resp.status === 402) { toast.error("AI credits exhausted"); setIsLoading(false); return; }
       if (!resp.ok || !resp.body) throw new Error("Stream failed");
 
-      // Check for inspector data in header
       const inspectorHeader = resp.headers.get("X-Memory-Inspector");
       if (inspectorHeader) {
         try { onInspectorUpdate(JSON.parse(inspectorHeader)); } catch {}
@@ -107,26 +108,29 @@ export function ChatPanel({ onInspectorUpdate }: Props) {
       <ScrollArea className="flex-1 p-4 scrollbar-thin">
         <div className="space-y-4">
           {messages.length === 0 && (
-            <div className="flex flex-col items-center justify-center py-16 text-center text-muted-foreground">
-              <Bot className="h-12 w-12 mb-3 opacity-30" />
-              <p className="text-sm font-medium">Ask anything about your memories</p>
-              <p className="text-xs mt-1 max-w-xs">Try: "What did I decide about auth?" or "Summarize my notes"</p>
-            </div>
+            <EmptyState
+              icon={Bot}
+              title="Ask anything about your memories"
+              description='Try: "What did I decide about auth?" or "Summarize my notes"'
+            />
           )}
           {messages.map((msg, i) => (
             <motion.div
               key={i}
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
               className={`flex gap-3 ${msg.role === "user" ? "justify-end" : ""}`}
             >
               {msg.role === "assistant" && (
-                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary/10 border border-primary/20">
                   <Bot className="h-4 w-4 text-primary" />
                 </div>
               )}
-              <div className={`max-w-[80%] rounded-xl px-4 py-2.5 text-sm ${
-                msg.role === "user" ? "bg-primary text-primary-foreground" : "bg-secondary"
+              <div className={`max-w-[80%] rounded-xl px-4 py-2.5 text-sm transition-all ${
+                msg.role === "user"
+                  ? "bg-primary text-primary-foreground glow-subtle"
+                  : "bg-secondary/50 border border-border/30"
               }`}>
                 {msg.role === "assistant" ? (
                   <div className="prose prose-sm dark:prose-invert prose-p:my-1 prose-headings:my-2 max-w-none">
@@ -135,26 +139,30 @@ export function ChatPanel({ onInspectorUpdate }: Props) {
                 ) : msg.content}
               </div>
               {msg.role === "user" && (
-                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary">
+                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary glow-subtle">
                   <User className="h-4 w-4 text-primary-foreground" />
                 </div>
               )}
             </motion.div>
           ))}
           {isLoading && messages[messages.length - 1]?.role === "user" && (
-            <div className="flex gap-3">
-              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                <Bot className="h-4 w-4 text-primary animate-pulse" />
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex gap-3"
+            >
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary/10 border border-primary/20">
+                <Bot className="h-4 w-4 text-primary" />
               </div>
-              <div className="rounded-xl bg-secondary px-4 py-2.5">
-                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+              <div className="rounded-xl bg-secondary/50 border border-border/30 px-4 py-3">
+                <AIThinkingInline />
               </div>
-            </div>
+            </motion.div>
           )}
           <div ref={scrollRef} />
         </div>
       </ScrollArea>
-      <div className="border-t border-border p-4">
+      <div className="border-t border-border/30 p-4 glass-strong">
         <div className="flex gap-2">
           <Input
             value={input}
@@ -162,8 +170,14 @@ export function ChatPanel({ onInspectorUpdate }: Props) {
             placeholder="Ask about your memories..."
             onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
             disabled={isLoading}
+            className="bg-muted/30 border-border/50 focus-visible:ring-primary focus-visible:border-primary/50"
           />
-          <Button size="icon" onClick={send} disabled={isLoading || !input.trim()}>
+          <Button
+            size="icon"
+            onClick={send}
+            disabled={isLoading || !input.trim()}
+            className="glow-subtle shrink-0"
+          >
             <Send className="h-4 w-4" />
           </Button>
         </div>

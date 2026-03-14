@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { motion } from "framer-motion";
 
 const DEMO_MEMORIES = [
   {
@@ -64,9 +65,17 @@ export function DemoDataLoader() {
   };
 
   return (
-    <Button variant="outline" size="sm" onClick={loadDemo} disabled={loading} className="gap-2">
-      {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
-      Load Demo Data
-    </Button>
+    <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={loadDemo}
+        disabled={loading}
+        className="gap-2 border-border/50 hover:bg-primary/10 hover:text-primary hover:border-primary/30 transition-all duration-200"
+      >
+        {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+        Load Demo Data
+      </Button>
+    </motion.div>
   );
 }

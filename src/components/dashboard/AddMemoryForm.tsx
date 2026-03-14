@@ -79,43 +79,31 @@ export function AddMemoryForm({ onSubmit, isSubmitting }: Props) {
 
   const toggleVoice = async () => {
     if (isRecording) {
-      // Stop recording — this triggers the onstop handler
       mediaRecorderRef.current?.stop();
       return;
     }
-
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const mediaRecorder = new MediaRecorder(stream, { mimeType: "audio/webm" });
       audioChunksRef.current = [];
-
       mediaRecorder.ondataavailable = (e) => {
         if (e.data.size > 0) audioChunksRef.current.push(e.data);
       };
-
       mediaRecorder.onstop = async () => {
-        // Stop all tracks to release mic
         stream.getTracks().forEach((t) => t.stop());
         setIsRecording(false);
-
         const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
-        if (audioBlob.size < 1000) {
-          toast.error("Recording too short. Try again.");
-          return;
-        }
-
+        if (audioBlob.size < 1000) { toast.error("Recording too short. Try again."); return; }
         setIsTranscribing(true);
         try {
           const { data: { session } } = await supabase.auth.getSession();
           const formData = new FormData();
           formData.append("audio", audioBlob, "recording.webm");
-
           const resp = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/transcribe`, {
             method: "POST",
             headers: { Authorization: `Bearer ${session?.access_token}` },
             body: formData,
           });
-
           const data = await resp.json();
           if (data.transcript) {
             setContent((prev) => (prev ? prev + " " + data.transcript : data.transcript));
@@ -123,25 +111,17 @@ export function AddMemoryForm({ onSubmit, isSubmitting }: Props) {
           } else {
             toast.error(data.error || "Could not transcribe audio");
           }
-        } catch {
-          toast.error("Transcription failed. Try again.");
-        }
+        } catch { toast.error("Transcription failed. Try again."); }
         setIsTranscribing(false);
       };
-
       mediaRecorder.start();
       mediaRecorderRef.current = mediaRecorder;
       setIsRecording(true);
       toast.info("Recording... Click mic again to stop.");
     } catch (err: any) {
-      console.error("Mic error:", err);
-      if (err.name === "NotAllowedError") {
-        toast.error("Microphone access denied. Allow it in browser settings.");
-      } else if (err.name === "NotFoundError") {
-        toast.error("No microphone found. Connect one and retry.");
-      } else {
-        toast.error("Could not access microphone.");
-      }
+      if (err.name === "NotAllowedError") toast.error("Microphone access denied.");
+      else if (err.name === "NotFoundError") toast.error("No microphone found.");
+      else toast.error("Could not access microphone.");
     }
   };
 
@@ -150,18 +130,13 @@ export function AddMemoryForm({ onSubmit, isSubmitting }: Props) {
     if (!file) return;
     if (file.size > 5 * 1024 * 1024) { toast.error("File must be under 5MB"); return; }
     const ext = file.name.split(".").pop()?.toLowerCase();
-    if (ext && !["md", "txt", "markdown"].includes(ext)) {
-      toast.error("Only .md and .txt files are supported.");
-      return;
-    }
+    if (ext && !["md", "txt", "markdown"].includes(ext)) { toast.error("Only .md and .txt files are supported."); return; }
     try {
       const text = await file.text();
       setContent(text);
       if (!title) setTitle(file.name.replace(/\.[^/.]+$/, ""));
       toast.success("File content loaded");
-    } catch {
-      toast.error("Could not read file. Use .md or .txt.");
-    }
+    } catch { toast.error("Could not read file."); }
     e.target.value = "";
   };
 
@@ -173,14 +148,33 @@ export function AddMemoryForm({ onSubmit, isSubmitting }: Props) {
       onSubmit={handleSubmit}
       className="space-y-4"
     >
-      <Input placeholder="Memory title..." value={title} onChange={e => setTitle(e.target.value)} required />
+      <Input
+        placeholder="Memory title..."
+        value={title}
+        onChange={e => setTitle(e.target.value)}
+        required
+        className="bg-muted/30 border-border/50 focus-visible:ring-primary focus-visible:border-primary/50"
+      />
       <div className="relative">
-        <Textarea placeholder="Write your memory, paste content, or use voice..." value={content} onChange={e => setContent(e.target.value)} className="min-h-[140px] pr-20" required />
+        <Textarea
+          placeholder="Write your memory, paste content, or use voice..."
+          value={content}
+          onChange={e => setContent(e.target.value)}
+          className="min-h-[140px] pr-20 bg-muted/30 border-border/50 focus-visible:ring-primary focus-visible:border-primary/50"
+          required
+        />
         <div className="absolute right-2 top-2 flex flex-col gap-1">
-          <Button type="button" size="icon" variant={isRecording ? "destructive" : "ghost"} className="h-8 w-8" onClick={toggleVoice} disabled={isTranscribing}>
+          <Button
+            type="button"
+            size="icon"
+            variant={isRecording ? "destructive" : "ghost"}
+            className={`h-8 w-8 transition-all duration-200 ${isRecording ? "glow-primary animate-pulse" : "hover:bg-primary/10 hover:text-primary"}`}
+            onClick={toggleVoice}
+            disabled={isTranscribing}
+          >
             {isTranscribing ? <Loader2 className="h-4 w-4 animate-spin" /> : isRecording ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
           </Button>
-          <Button type="button" size="icon" variant="ghost" className="h-8 w-8" onClick={() => fileInputRef.current?.click()}>
+          <Button type="button" size="icon" variant="ghost" className="h-8 w-8 hover:bg-primary/10 hover:text-primary transition-colors" onClick={() => fileInputRef.current?.click()}>
             <Upload className="h-4 w-4" />
           </Button>
         </div>
@@ -188,7 +182,7 @@ export function AddMemoryForm({ onSubmit, isSubmitting }: Props) {
       </div>
       <div className="flex gap-3 flex-wrap">
         <Select value={type} onValueChange={(v) => setType(v as MemoryType)}>
-          <SelectTrigger className="w-[130px]"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-[130px] bg-muted/30 border-border/50"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="note">Note</SelectItem>
             <SelectItem value="code">Code</SelectItem>
@@ -197,7 +191,7 @@ export function AddMemoryForm({ onSubmit, isSubmitting }: Props) {
           </SelectContent>
         </Select>
         <Select value={layer} onValueChange={(v) => setLayer(v as MemoryLayer)}>
-          <SelectTrigger className="w-[130px]"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-[130px] bg-muted/30 border-border/50"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="working">Working</SelectItem>
             <SelectItem value="episodic">Episodic</SelectItem>
@@ -207,9 +201,24 @@ export function AddMemoryForm({ onSubmit, isSubmitting }: Props) {
       </div>
       <div className="space-y-2">
         <div className="flex gap-2">
-          <Input placeholder="Add tag..." value={tagInput} onChange={e => setTagInput(e.target.value)} onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addTag(); } }} className="flex-1" />
-          <Button type="button" size="icon" variant="outline" onClick={addTag}><Plus className="h-4 w-4" /></Button>
-          <Button type="button" variant="outline" size="sm" onClick={suggestTags} disabled={suggestingTags} className="gap-1.5 shrink-0">
+          <Input
+            placeholder="Add tag..."
+            value={tagInput}
+            onChange={e => setTagInput(e.target.value)}
+            onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addTag(); } }}
+            className="flex-1 bg-muted/30 border-border/50 focus-visible:ring-primary"
+          />
+          <Button type="button" size="icon" variant="outline" onClick={addTag} className="hover:bg-primary/10 hover:text-primary hover:border-primary/30 transition-all">
+            <Plus className="h-4 w-4" />
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={suggestTags}
+            disabled={suggestingTags}
+            className="gap-1.5 shrink-0 hover:bg-primary/10 hover:text-primary hover:border-primary/30 transition-all"
+          >
             {suggestingTags ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
             <span className="hidden sm:inline">AI Tags</span>
           </Button>
@@ -222,13 +231,13 @@ export function AddMemoryForm({ onSubmit, isSubmitting }: Props) {
               exit={{ opacity: 0, height: 0 }}
               className="overflow-hidden"
             >
-              <div className="flex flex-wrap gap-1.5 p-2 rounded-md bg-primary/5 border border-primary/20">
+              <div className="flex flex-wrap gap-1.5 p-2.5 rounded-lg bg-primary/5 border border-primary/20">
                 <span className="text-[10px] text-primary font-medium w-full mb-0.5">AI Suggestions:</span>
                 {suggestedTags.map(t => (
                   <Badge
                     key={t}
                     variant="outline"
-                    className="cursor-pointer text-xs border-primary/30 hover:bg-primary/10 transition-colors"
+                    className="cursor-pointer text-xs border-primary/30 text-primary hover:bg-primary/10 transition-all duration-200"
                     onClick={() => acceptTag(t)}
                   >
                     + {t}
@@ -239,17 +248,21 @@ export function AddMemoryForm({ onSubmit, isSubmitting }: Props) {
           )}
         </AnimatePresence>
         {tags.length > 0 && (
-          <div className="flex flex-wrap gap-1.5">
+          <motion.div layout className="flex flex-wrap gap-1.5">
             {tags.map(t => (
-              <Badge key={t} variant="secondary" className="gap-1 text-xs">
-                {t}
-                <button type="button" onClick={() => setTags(tags.filter(x => x !== t))}><X className="h-3 w-3" /></button>
-              </Badge>
+              <motion.div key={t} initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.8, opacity: 0 }}>
+                <Badge variant="secondary" className="gap-1 text-xs">
+                  {t}
+                  <button type="button" onClick={() => setTags(tags.filter(x => x !== t))} className="hover:text-destructive transition-colors">
+                    <X className="h-3 w-3" />
+                  </button>
+                </Badge>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         )}
       </div>
-      <Button type="submit" className="w-full" disabled={isSubmitting}>
+      <Button type="submit" className="w-full glow-primary font-semibold" disabled={isSubmitting}>
         {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
         Save Memory
       </Button>
