@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Plus, X, Loader2 } from "lucide-react";
 import type { Memory, MemoryType, MemoryLayer } from "@/types/memory";
+import { motion } from "framer-motion";
 
 interface Props {
   memory: Memory;
@@ -42,12 +43,30 @@ export function EditMemoryForm({ memory, onSubmit, onCancel, isSubmitting }: Pro
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <Input placeholder="Memory title..." value={title} onChange={e => setTitle(e.target.value)} required />
-      <Textarea placeholder="Write your memory..." value={content} onChange={e => setContent(e.target.value)} className="min-h-[140px]" required />
+    <motion.form
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      onSubmit={handleSubmit}
+      className="space-y-4"
+    >
+      <Input
+        placeholder="Memory title..."
+        value={title}
+        onChange={e => setTitle(e.target.value)}
+        required
+        className="bg-muted/30 border-border/50 focus-visible:ring-primary"
+      />
+      <Textarea
+        placeholder="Write your memory..."
+        value={content}
+        onChange={e => setContent(e.target.value)}
+        className="min-h-[140px] bg-muted/30 border-border/50 focus-visible:ring-primary"
+        required
+      />
       <div className="flex gap-3">
         <Select value={type} onValueChange={(v) => setType(v as MemoryType)}>
-          <SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-[140px] bg-muted/30 border-border/50"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="note">Note</SelectItem>
             <SelectItem value="code">Code</SelectItem>
@@ -56,7 +75,7 @@ export function EditMemoryForm({ memory, onSubmit, onCancel, isSubmitting }: Pro
           </SelectContent>
         </Select>
         <Select value={layer} onValueChange={(v) => setLayer(v as MemoryLayer)}>
-          <SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-[140px] bg-muted/30 border-border/50"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="working">Working</SelectItem>
             <SelectItem value="episodic">Episodic</SelectItem>
@@ -66,22 +85,32 @@ export function EditMemoryForm({ memory, onSubmit, onCancel, isSubmitting }: Pro
       </div>
       <div className="space-y-2">
         <div className="flex gap-2">
-          <Input placeholder="Add tag..." value={tagInput} onChange={e => setTagInput(e.target.value)} onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addTag(); } }} className="flex-1" />
-          <Button type="button" size="icon" variant="outline" onClick={addTag}><Plus className="h-4 w-4" /></Button>
+          <Input
+            placeholder="Add tag..."
+            value={tagInput}
+            onChange={e => setTagInput(e.target.value)}
+            onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addTag(); } }}
+            className="flex-1 bg-muted/30 border-border/50 focus-visible:ring-primary"
+          />
+          <Button type="button" size="icon" variant="outline" onClick={addTag} className="hover:bg-primary/10 hover:text-primary transition-all">
+            <Plus className="h-4 w-4" />
+          </Button>
         </div>
         {tags.length > 0 && (
           <div className="flex flex-wrap gap-1.5">
             {tags.map(t => (
               <Badge key={t} variant="secondary" className="gap-1 text-xs">
                 {t}
-                <button type="button" onClick={() => setTags(tags.filter(x => x !== t))}><X className="h-3 w-3" /></button>
+                <button type="button" onClick={() => setTags(tags.filter(x => x !== t))} className="hover:text-destructive transition-colors">
+                  <X className="h-3 w-3" />
+                </button>
               </Badge>
             ))}
           </div>
         )}
       </div>
       <div className="flex gap-2">
-        <Button type="submit" className="flex-1" disabled={isSubmitting}>
+        <Button type="submit" className="flex-1 glow-primary font-semibold" disabled={isSubmitting}>
           {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
           Save Changes
         </Button>
@@ -89,6 +118,6 @@ export function EditMemoryForm({ memory, onSubmit, onCancel, isSubmitting }: Pro
           Cancel
         </Button>
       </div>
-    </form>
+    </motion.form>
   );
 }
