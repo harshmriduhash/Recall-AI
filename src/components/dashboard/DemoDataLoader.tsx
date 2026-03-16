@@ -1,9 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Sparkles, Loader2 } from "lucide-react";
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
-import { useQueryClient } from "@tanstack/react-query";
+import { useMemories } from "@/hooks/useMemories";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 
