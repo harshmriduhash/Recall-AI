@@ -73,7 +73,7 @@ export default function Landing() {
               initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-              className="text-6xl font-bold tracking-tight sm:text-7xl md:text-8xl lg:text-9xl mb-12"
+              className="text-4xl font-bold tracking-tight sm:text-6xl md:text-7xl lg:text-9xl mb-8 md:mb-12"
             >
               Reason with
               <br />
@@ -125,22 +125,22 @@ export default function Landing() {
                 <div className="flex h-3 w-3 rounded-full bg-yellow-500/30" />
                 <div className="flex h-3 w-3 rounded-full bg-emerald-500/30" />
               </div>
-              <div className="grid grid-cols-12 gap-6">
-                <div className="col-span-3 space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-6">
+                <div className="md:col-span-3 space-y-4">
                   <MemorySkeleton />
-                  <MemorySkeleton />
+                  <MemorySkeleton className="hidden md:block" />
                 </div>
-                <div className="col-span-6 space-y-4 bg-black/40 rounded-2xl p-6 border border-white/5">
-                  <div className="mb-8">
+                <div className="md:col-span-6 space-y-4 bg-black/40 rounded-2xl p-4 md:p-6 border border-white/5">
+                  <div className="mb-6 md:mb-8">
                     <ThinkingAnimation />
                   </div>
                   <div className="space-y-4">
                     <AISkeleton className="h-4 w-3/4" />
                     <AISkeleton className="h-4 w-1/2" />
-                    <AISkeleton className="h-20 w-full" />
+                    <AISkeleton className="h-16 md:h-20 w-full" />
                   </div>
                 </div>
-                <div className="col-span-3 space-y-4">
+                <div className="hidden md:block md:col-span-3 space-y-4">
                   <div className="h-40 rounded-2xl bg-white/5 border border-white/5 p-4 flex flex-col justify-end">
                     <AISkeleton className="h-4 w-1/2 bg-emerald-500/20" />
                   </div>

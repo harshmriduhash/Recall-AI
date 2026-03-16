@@ -98,8 +98,16 @@ export default function Auth() {
         </div>
 
         {/* Right: Interface Form */}
-        <div className="flex-1 flex flex-col justify-center px-8 lg:px-24 bg-[#050505] relative z-20">
+        <div className="flex-1 flex flex-col justify-center px-6 md:px-12 lg:px-24 bg-[#050505] relative z-20">
           <div className="mx-auto w-full max-w-[440px]">
+            {/* Mobile-only Branding Header */}
+            <div className="flex lg:hidden items-center gap-3 mb-10">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+                <Brain className="h-5 w-5 text-emerald-500" />
+              </div>
+              <span className="text-xl tracking-tight font-sans text-white">Recall<span className="text-emerald-500">.ai</span></span>
+            </div>
+
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}

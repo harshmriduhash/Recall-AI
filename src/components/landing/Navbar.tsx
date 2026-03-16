@@ -1,8 +1,9 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Brain } from "lucide-react";
+import { Brain, Menu } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 export function Navbar({ className }: { className?: string }) {
   return (
@@ -36,13 +37,44 @@ export function Navbar({ className }: { className?: string }) {
           ))}
         </nav>
 
-        <div className="flex items-center gap-4">
-          <Link to="/auth" className="text-sm font-medium text-white/70 hover:text-white transition-colors">
+        <div className="flex items-center gap-2 md:gap-4">
+          <Link to="/auth" className="hidden sm:block text-sm font-medium text-white/70 hover:text-white transition-colors px-2">
             Log in
           </Link>
-          <Button asChild className="rounded-xl px-6 h-11 bg-emerald-500 hover:bg-emerald-400 text-black font-semibold transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)]">
+          <Button asChild className="hidden sm:flex rounded-xl px-6 h-11 bg-emerald-500 hover:bg-emerald-400 text-black font-semibold transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)]">
             <Link to="/auth?signup=1">Join the Beta</Link>
           </Button>
+
+          {/* Mobile Menu */}
+          <div className="md:hidden">
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="text-white hover:bg-white/5">
+                  <Menu className="h-6 w-6" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="bg-[#050505] border-white/5 p-8 flex flex-col pt-16">
+                <nav className="flex flex-col gap-8">
+                  {["Features", "How it works", "Pricing"].map((item) => (
+                    <a
+                      key={item}
+                      href={`#${item.toLowerCase().replace(/\s/g, "-")}`}
+                      className="text-lg font-medium text-white/50 hover:text-emerald-400 transition-colors"
+                    >
+                      {item}
+                    </a>
+                  ))}
+                  <div className="h-px bg-white/5 my-4" />
+                  <Link to="/auth" className="text-lg font-medium text-white/70 hover:text-white">
+                    Log in
+                  </Link>
+                  <Button asChild className="rounded-xl px-6 h-12 bg-emerald-500 hover:bg-emerald-400 text-black font-semibold">
+                    <Link to="/auth?signup=1">Join the Beta</Link>
+                  </Button>
+                </nav>
+              </SheetContent>
+            </Sheet>
+          </div>
         </div>
       </div>
     </motion.header>

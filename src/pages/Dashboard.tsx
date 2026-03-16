@@ -114,16 +114,16 @@ export default function Dashboard() {
               <button
                 key={tab.id}
                 onClick={() => setMobileTab(tab.id)}
-                className={`flex-1 flex flex-col items-center gap-1.5 py-3 text-[10px] font-mono uppercase tracking-widest transition-all duration-300 ${
+                className={`flex-1 flex flex-col items-center gap-1 py-2.5 text-[10px] font-mono uppercase tracking-[0.15em] transition-all duration-300 relative ${
                   mobileTab === tab.id ? "text-emerald-400" : "text-white/20 hover:text-white/40"
                 }`}
               >
                 <tab.icon className={`h-4.5 w-4.5 transition-transform duration-300 ${mobileTab === tab.id ? "scale-110" : ""}`} />
-                <span>{tab.label}</span>
+                <span className="hidden xs:block">{tab.label}</span>
                 {mobileTab === tab.id && (
                   <motion.div
                     layoutId="mobile-tab-indicator"
-                    className="absolute top-0 h-0.5 w-12 bg-emerald-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)]"
+                    className="absolute top-0 left-1/2 -translate-x-1/2 h-0.5 w-8 bg-emerald-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)]"
                   />
                 )}
               </button>
@@ -177,17 +177,17 @@ export default function Dashboard() {
                 <TabsContent value="chat" className="flex-1 m-0 overflow-hidden bg-[radial-gradient(circle_at_50%_0%,rgba(16,185,129,0.03),transparent_40%)]">
                   <ChatPanel onInspectorUpdate={setInspectorData} />
                 </TabsContent>
-                <TabsContent value="add" className="flex-1 m-0 p-8 overflow-y-auto">
+                <TabsContent value="add" className="flex-1 m-0 p-4 md:p-8 overflow-y-auto">
                   <motion.div 
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="mx-auto max-w-2xl"
                   >
-                    <div className="mb-10">
-                      <h2 className="text-2xl font-bold text-white mb-2">Memory Initialization</h2>
-                      <p className="text-white/40 font-light">Input data into your cognitive cluster.</p>
+                    <div className="mb-6 md:mb-10">
+                      <h2 className="text-xl md:text-2xl font-bold text-white mb-2">Memory Initialization</h2>
+                      <p className="text-white/40 font-light text-sm">Input data into your cognitive cluster.</p>
                     </div>
-                    <div className="bg-white/2 border border-white/5 rounded-[2.5rem] p-8 backdrop-blur-sm shadow-2xl">
+                    <div className="bg-white/2 border border-white/5 rounded-3xl md:rounded-[2.5rem] p-5 md:p-8 backdrop-blur-sm shadow-2xl">
                     <AddMemoryForm
                       onSubmit={(data) => addMemory.mutate(data)}
                       isSubmitting={addMemory.isPending}

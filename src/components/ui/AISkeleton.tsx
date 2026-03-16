@@ -16,9 +16,9 @@ export const AISkeleton = ({ className, ...props }: SkeletonProps) => {
   );
 };
 
-export const MemorySkeleton = () => {
+export const MemorySkeleton = ({ className, ...props }: SkeletonProps) => {
   return (
-    <div className="p-4 rounded-xl border border-white/5 bg-white/2 space-y-3">
+    <div className={cn("p-4 rounded-xl border border-white/5 bg-white/2 space-y-3", className)} {...props}>
       <div className="flex justify-between items-start">
         <AISkeleton className="h-5 w-1/3" />
         <AISkeleton className="h-4 w-16 rounded-full" />
