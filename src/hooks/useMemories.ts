@@ -1,30 +1,38 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth, useUser } from "@clerk/react";
 import type { Memory, MemoryType, MemoryLayer } from "@/types/memory";
 import { toast } from "sonner";
 
 export function useMemories() {
-  const { user } = useAuth();
+  const { user } = useUser();
+  const { getToken } = useAuth();
   const queryClient = useQueryClient();
 
   const query = useQuery({
     queryKey: ["memories", user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("memories")
-        .select("*")
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data as Memory[];
+      const token = await getToken();
+      const response = await fetch("/api/memories", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!response.ok) throw new Error("Failed to fetch memories");
+      return response.json() as Promise<Memory[]>;
     },
     enabled: !!user,
   });
 
   const addMemory = useMutation({
     mutationFn: async (memory: { title: string; content: string; type: MemoryType; memory_layer: MemoryLayer; tags: string[] }) => {
-      const { error } = await supabase.from("memories").insert({ ...memory, user_id: user!.id });
-      if (error) throw error;
+      const token = await getToken();
+      const response = await fetch("/api/memories", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(memory),
+      });
+      if (!response.ok) throw new Error("Failed to save memory");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["memories"] });
@@ -35,8 +43,16 @@ export function useMemories() {
 
   const updateMemory = useMutation({
     mutationFn: async ({ id, ...updates }: { id: string; title?: string; content?: string; type?: MemoryType; memory_layer?: MemoryLayer; tags?: string[] }) => {
-      const { error } = await supabase.from("memories").update(updates).eq("id", id);
-      if (error) throw error;
+      const token = await getToken();
+      const response = await fetch("/api/memories", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ id, ...updates }),
+      });
+      if (!response.ok) throw new Error("Failed to update memory");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["memories"] });
@@ -47,8 +63,12 @@ export function useMemories() {
 
   const deleteMemory = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("memories").delete().eq("id", id);
-      if (error) throw error;
+      const token = await getToken();
+      const response = await fetch(`/api/memories?id=${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!response.ok) throw new Error("Failed to delete memory");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["memories"] });
