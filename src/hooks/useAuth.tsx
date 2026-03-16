@@ -1,10 +1,9 @@
-import { useState, useEffect, createContext, useContext } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import type { User, Session } from "@supabase/supabase-js";
+import { createContext, useContext } from "react";
+import { useUser, useSignIn, useSignUp, useClerk } from "@clerk/react";
 
 interface AuthContextType {
-  user: User | null;
-  session: Session | null;
+  user: any;
+  session: any;
   loading: boolean;
   signUp: (email: string, password: string, displayName: string) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
@@ -15,52 +14,68 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { user, isLoaded: userLoaded } = useUser();
+  const { signIn: clerkSignIn, isLoaded: signInLoaded, setActive: setSignInActive } = useSignIn();
+  const { signUp: clerkSignUp, isLoaded: signUpLoaded, setActive: setSignUpActive } = useSignUp();
+  const { signOut: clerkSignOut, session } = useClerk();
 
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
+  const loading = !userLoaded || !signInLoaded || !signUpLoaded;
 
   const signUp = async (email: string, password: string, displayName: string) => {
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: window.location.origin,
-        data: { display_name: displayName },
-      },
-    });
-    return { error: error ? new Error(error.message) : null };
+    try {
+      if (!clerkSignUp) throw new Error("SignUp not loaded");
+      const result = await clerkSignUp.create({
+        emailAddress: email,
+        password,
+        unsafeMetadata: { displayName },
+      });
+      
+      if (result.status === "complete") {
+        await setSignUpActive({ session: result.createdSessionId });
+        return { error: null };
+      }
+      
+      // Handle multi-step signup if needed, but for now assuming complete or error
+      return { error: new Error(`Signup status: ${result.status}`) };
+    } catch (err: any) {
+      return { error: new Error(err.errors?.[0]?.message || err.message) };
+    }
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    return { error: error ? new Error(error.message) : null };
+    try {
+      if (!clerkSignIn) throw new Error("SignIn not loaded");
+      const result = await clerkSignIn.create({
+        identifier: email,
+        password,
+      });
+
+      if (result.status === "complete") {
+        await setSignInActive({ session: result.createdSessionId });
+        return { error: null };
+      }
+      
+      return { error: new Error(`Signin status: ${result.status}`) };
+    } catch (err: any) {
+      return { error: new Error(err.errors?.[0]?.message || err.message) };
+    }
   };
 
   const resetPassword = async (email: string) => {
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth?reset=true`,
-    });
-    return { error: error ? new Error(error.message) : null };
+    try {
+      if (!clerkSignIn) throw new Error("SignIn not loaded");
+      await clerkSignIn.create({
+        strategy: "reset_password_email_code",
+        identifier: email,
+      });
+      return { error: null };
+    } catch (err: any) {
+      return { error: new Error(err.errors?.[0]?.message || err.message) };
+    }
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    await clerkSignOut();
   };
 
   return (
