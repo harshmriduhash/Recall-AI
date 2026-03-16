@@ -144,85 +144,111 @@ export function AddMemoryForm({ onSubmit, isSubmitting }: Props) {
     <motion.form
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
+      transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
       onSubmit={handleSubmit}
-      className="space-y-4"
+      className="space-y-6"
     >
-      <Input
-        placeholder="Memory title..."
-        value={title}
-        onChange={e => setTitle(e.target.value)}
-        required
-        className="bg-muted/30 border-border/50 focus-visible:ring-primary focus-visible:border-primary/50"
-      />
-      <div className="relative">
-        <Textarea
-          placeholder="Write your memory, paste content, or use voice..."
-          value={content}
-          onChange={e => setContent(e.target.value)}
-          className="min-h-[140px] pr-20 bg-muted/30 border-border/50 focus-visible:ring-primary focus-visible:border-primary/50"
-          required
-        />
-        <div className="absolute right-2 top-2 flex flex-col gap-1">
-          <Button
-            type="button"
-            size="icon"
-            variant={isRecording ? "destructive" : "ghost"}
-            className={`h-8 w-8 transition-all duration-200 ${isRecording ? "glow-primary animate-pulse" : "hover:bg-primary/10 hover:text-primary"}`}
-            onClick={toggleVoice}
-            disabled={isTranscribing}
-          >
-            {isTranscribing ? <Loader2 className="h-4 w-4 animate-spin" /> : isRecording ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
-          </Button>
-          <Button type="button" size="icon" variant="ghost" className="h-8 w-8 hover:bg-primary/10 hover:text-primary transition-colors" onClick={() => fileInputRef.current?.click()}>
-            <Upload className="h-4 w-4" />
-          </Button>
-        </div>
-        <input ref={fileInputRef} type="file" accept=".md,.txt,text/plain,text/markdown" className="hidden" onChange={handleFile} />
-      </div>
-      <div className="flex gap-3 flex-wrap">
-        <Select value={type} onValueChange={(v) => setType(v as MemoryType)}>
-          <SelectTrigger className="w-[130px] bg-muted/30 border-border/50"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="note">Note</SelectItem>
-            <SelectItem value="code">Code</SelectItem>
-            <SelectItem value="decision">Decision</SelectItem>
-            <SelectItem value="conversation">Conversation</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={layer} onValueChange={(v) => setLayer(v as MemoryLayer)}>
-          <SelectTrigger className="w-[130px] bg-muted/30 border-border/50"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="working">Working</SelectItem>
-            <SelectItem value="episodic">Episodic</SelectItem>
-            <SelectItem value="semantic">Semantic</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-      <div className="space-y-2">
-        <div className="flex gap-2">
+      <div className="space-y-4">
+        <div className="group">
+          <label className="text-[10px] font-mono uppercase tracking-[0.2em] text-white/20 mb-2 block ml-1">Archive Title</label>
           <Input
-            placeholder="Add tag..."
-            value={tagInput}
-            onChange={e => setTagInput(e.target.value)}
-            onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addTag(); } }}
-            className="flex-1 bg-muted/30 border-border/50 focus-visible:ring-primary"
+            placeholder="FRAGMENT_IDENTIFIER"
+            value={title}
+            onChange={e => setTitle(e.target.value)}
+            required
+            className="h-12 bg-white/2 border-white/5 focus-visible:ring-emerald-500/50 focus-visible:border-emerald-500/30 text-white rounded-2xl transition-all"
           />
-          <Button type="button" size="icon" variant="outline" onClick={addTag} className="hover:bg-primary/10 hover:text-primary hover:border-primary/30 transition-all">
-            <Plus className="h-4 w-4" />
-          </Button>
+        </div>
+
+        <div className="group relative">
+          <label className="text-[10px] font-mono uppercase tracking-[0.2em] text-white/20 mb-2 block ml-1">Node Content</label>
+          <Textarea
+            placeholder="Initialize cognitive input sequence..."
+            value={content}
+            onChange={e => setContent(e.target.value)}
+            className="min-h-[180px] pr-14 bg-white/2 border-white/5 focus-visible:ring-emerald-500/50 focus-visible:border-emerald-500/30 text-white rounded-2xl transition-all leading-relaxed resize-none"
+            required
+          />
+          <div className="absolute right-3 top-10 flex flex-col gap-2">
+            <Button
+              type="button"
+              size="icon"
+              variant="ghost"
+              className={`h-9 w-9 rounded-xl transition-all duration-300 ${isRecording ? "bg-emerald-500 text-black shadow-[0_0_20px_rgba(16,185,129,0.5)] animate-pulse" : "bg-white/5 text-white/40 hover:text-emerald-400 hover:bg-emerald-500/10"}`}
+              onClick={toggleVoice}
+              disabled={isTranscribing}
+            >
+              {isTranscribing ? <Loader2 className="h-4 w-4 animate-spin" /> : isRecording ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+            </Button>
+            <Button 
+              type="button" 
+              size="icon" 
+              variant="ghost" 
+              className="h-9 w-9 rounded-xl bg-white/5 text-white/40 hover:text-emerald-400 hover:bg-emerald-500/10 transition-all duration-300"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <Upload className="h-4 w-4" />
+            </Button>
+          </div>
+          <input ref={fileInputRef} type="file" accept=".md,.txt,text/plain,text/markdown" className="hidden" onChange={handleFile} />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <label className="text-[10px] font-mono uppercase tracking-[0.2em] text-white/20 ml-1">Classification</label>
+          <Select value={type} onValueChange={(v) => setType(v as MemoryType)}>
+            <SelectTrigger className="h-11 bg-white/2 border-white/5 rounded-xl text-[11px] font-mono uppercase tracking-wider text-white/60 hover:bg-white/4 transition-all">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="bg-[#0A0A0A] border-white/10">
+              <SelectItem value="note" className="text-[10px] font-mono uppercase">NOTE</SelectItem>
+              <SelectItem value="code" className="text-[10px] font-mono uppercase">CODE</SelectItem>
+              <SelectItem value="decision" className="text-[10px] font-mono uppercase">DECISION</SelectItem>
+              <SelectItem value="conversation" className="text-[10px] font-mono uppercase">CHAT</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-2">
+          <label className="text-[10px] font-mono uppercase tracking-[0.2em] text-white/20 ml-1">Priority Layer</label>
+          <Select value={layer} onValueChange={(v) => setLayer(v as MemoryLayer)}>
+            <SelectTrigger className="h-11 bg-white/2 border-white/5 rounded-xl text-[11px] font-mono uppercase tracking-wider text-white/60 hover:bg-white/4 transition-all">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="bg-[#0A0A0A] border-white/10">
+              <SelectItem value="working" className="text-[10px] font-mono uppercase">WORKING</SelectItem>
+              <SelectItem value="episodic" className="text-[10px] font-mono uppercase">EPISODIC</SelectItem>
+              <SelectItem value="semantic" className="text-[10px] font-mono uppercase">SEMANTIC</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <div className="flex gap-2">
+          <div className="relative flex-1 group">
+            <Plus className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white/20 group-focus-within:text-emerald-500 transition-colors" />
+            <Input
+              placeholder="Append neural tag..."
+              value={tagInput}
+              onChange={e => setTagInput(e.target.value)}
+              onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addTag(); } }}
+              className="h-11 pl-9 bg-white/2 border-white/5 rounded-xl text-[11px] focus-visible:ring-emerald-500/50"
+            />
+          </div>
           <Button
             type="button"
             variant="outline"
             size="sm"
             onClick={suggestTags}
             disabled={suggestingTags}
-            className="gap-1.5 shrink-0 hover:bg-primary/10 hover:text-primary hover:border-primary/30 transition-all"
+            className="h-11 px-4 gap-2 bg-emerald-500/5 border-emerald-500/10 text-emerald-400 font-mono text-[10px] uppercase tracking-wider rounded-xl hover:bg-emerald-500/10 hover:border-emerald-500/20 transition-all"
           >
             {suggestingTags ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
-            <span className="hidden sm:inline">AI Tags</span>
+            <span className="hidden sm:inline">AI Synthesis</span>
           </Button>
         </div>
+
         <AnimatePresence>
           {suggestedTags.length > 0 && (
             <motion.div
@@ -231,13 +257,12 @@ export function AddMemoryForm({ onSubmit, isSubmitting }: Props) {
               exit={{ opacity: 0, height: 0 }}
               className="overflow-hidden"
             >
-              <div className="flex flex-wrap gap-1.5 p-2.5 rounded-lg bg-primary/5 border border-primary/20">
-                <span className="text-[10px] text-primary font-medium w-full mb-0.5">AI Suggestions:</span>
+              <div className="flex flex-wrap gap-2 p-4 rounded-2xl bg-emerald-500/[0.02] border border-emerald-500/5">
+                <span className="text-[9px] font-mono text-emerald-500/40 uppercase tracking-widest w-full mb-1">Synthesized Proposals:</span>
                 {suggestedTags.map(t => (
                   <Badge
                     key={t}
-                    variant="outline"
-                    className="cursor-pointer text-xs border-primary/30 text-primary hover:bg-primary/10 transition-all duration-200"
+                    className="cursor-pointer bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border-none rounded-lg font-mono text-[10px] px-2.5 py-1 transition-all"
                     onClick={() => acceptTag(t)}
                   >
                     + {t}
@@ -247,24 +272,37 @@ export function AddMemoryForm({ onSubmit, isSubmitting }: Props) {
             </motion.div>
           )}
         </AnimatePresence>
-        {tags.length > 0 && (
-          <motion.div layout className="flex flex-wrap gap-1.5">
-            {tags.map(t => (
-              <motion.div key={t} initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.8, opacity: 0 }}>
-                <Badge variant="secondary" className="gap-1 text-xs">
-                  {t}
-                  <button type="button" onClick={() => setTags(tags.filter(x => x !== t))} className="hover:text-destructive transition-colors">
-                    <X className="h-3 w-3" />
-                  </button>
-                </Badge>
-              </motion.div>
-            ))}
-          </motion.div>
-        )}
+
+        <AnimatePresence mode="popLayout">
+          {tags.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {tags.map(t => (
+                <motion.div 
+                  key={t} 
+                  layout
+                  initial={{ scale: 0.8, opacity: 0 }} 
+                  animate={{ scale: 1, opacity: 1 }} 
+                  exit={{ scale: 0.8, opacity: 0 }}
+                >
+                  <Badge className="bg-white/5 hover:bg-white/10 text-white/50 border-none rounded-lg px-2.5 py-1 text-[10px] font-mono flex items-center gap-2 transition-all group">
+                    #{t}
+                    <button type="button" onClick={() => setTags(tags.filter(x => x !== t))} className="text-white/20 hover:text-emerald-400 transition-colors">
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                </motion.div>
+              ))}
+            </div>
+          )}
+        </AnimatePresence>
       </div>
-      <Button type="submit" className="w-full glow-primary font-semibold" disabled={isSubmitting}>
-        {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-        Save Memory
+
+      <Button 
+        type="submit" 
+        className="w-full h-12 bg-emerald-500 text-black hover:bg-emerald-400 font-bold uppercase tracking-[0.2em] text-[12px] rounded-2xl transition-all shadow-[0_0_30px_rgba(16,185,129,0.2)] hover:shadow-[0_0_40px_rgba(16,185,129,0.3)] disabled:opacity-50" 
+        disabled={isSubmitting}
+      >
+        {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Commit to Core"}
       </Button>
     </motion.form>
   );
