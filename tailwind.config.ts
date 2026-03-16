@@ -77,6 +77,24 @@ export default {
         "gradient-x": {
           "0%, 100%": { "background-size": "200% 200%", "background-position": "left center" },
           "50%": { "background-size": "200% 200%", "background-position": "right center" }
+        },
+        "orbit": {
+          "from": { "transform": "rotate(0deg) translateX(24px) rotate(0deg)" },
+          "to": { "transform": "rotate(360deg) translateX(24px) rotate(-360deg)" }
+        },
+        "orbit-reverse": {
+          "from": { "transform": "rotate(0deg) translateX(18px) rotate(0deg)" },
+          "to": { "transform": "rotate(-360deg) translateX(18px) rotate(360deg)" }
+        },
+        "pulse-glow": {
+          "0%, 100%": { "opacity": "0.4", "transform": "scale(1)" },
+          "50%": { "opacity": "0.8", "transform": "scale(1.05)" }
+        },
+        "mesh-drift": {
+          "0%, 100%": { "transform": "translate(0, 0) scale(1)" },
+          "25%": { "transform": "translate(30px, -50px) scale(1.1)" },
+          "50%": { "transform": "translate(-20px, 20px) scale(0.95)" },
+          "75%": { "transform": "translate(10px, 40px) scale(1.05)" }
         }
       },
       animation: {
@@ -87,7 +105,11 @@ export default {
         "thinking-dots": "thinking-dots 1.4s ease-in-out infinite",
         "neural-pulse": "neural-pulse 2s infinite",
         "shimmer": "shimmer 2.5s infinite linear",
-        "gradient-x": "gradient-x 3s ease infinite"
+        "gradient-x": "gradient-x 3s ease infinite",
+        "orbit": "orbit 6s linear infinite",
+        "orbit-reverse": "orbit-reverse 4s linear infinite",
+        "pulse-glow": "pulse-glow 3s ease-in-out infinite",
+        "mesh-drift": "mesh-drift 15s ease-in-out infinite"
       },
       backgroundSize: {
         shimmer: "200% 100%",
