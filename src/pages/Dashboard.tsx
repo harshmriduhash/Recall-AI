@@ -87,7 +87,9 @@ export default function Dashboard() {
             )}
             
             <div className="flex items-center gap-3 pl-2">
-              <span className="text-xs font-mono text-white/20 hidden lg:block tracking-wider uppercase">{user?.email?.split('@')[0]}</span>
+              <span className="text-xs font-mono text-white/20 hidden lg:block tracking-wider uppercase">
+                {user?.primaryEmailAddress?.emailAddress?.split('@')[0] || "User"}
+              </span>
               <Button 
                 variant="ghost" 
                 size="icon" 

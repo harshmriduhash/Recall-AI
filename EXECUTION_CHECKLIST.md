@@ -7,7 +7,7 @@
 - [ ] Current sprint / iteration goal clear
 - [ ] Tasks broken into small, testable items
 - [ ] Dependencies (design, API, content) unblocked or tracked
-- [ ] Local env and Supabase (or local Supabase) working
+- [ ] Local env and Vercel development server working
 
 ## During development
 
@@ -17,7 +17,7 @@
 - [ ] New features behind auth where appropriate; RLS respected
 - [ ] Lint and type-check passing: `npm run lint`; `tsc` if script exists
 - [ ] Manual test of changed flows (auth, add memory, chat)
-- [ ] Edge Function changes tested locally (e.g. `supabase functions serve`) if applicable
+- [ ] API changes tested locally (e.g. `npm run dev` handles `/api/*` routes)
 
 ## Before merging / releasing
 
