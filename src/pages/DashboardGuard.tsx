@@ -5,26 +5,34 @@ import Dashboard from "./Dashboard";
 import { useAuth as useClerkAuth } from "@clerk/react";
 
 export default function DashboardGuard() {
-  const { user, loading } = useAuth();
-  const { sessionId, isLoaded } = useClerkAuth();
+  const { user, loading: authLoading } = useAuth();
+  const { sessionId, isLoaded: clerkLoaded } = useClerkAuth();
   const location = useLocation();
 
   const isHandshaking = location.search.includes("__clerk_") || location.search.includes("__clerk_handshake");
   
-  // If Clerk hasn't even loaded its basic state yet
-  if (!isLoaded) {
+  // 1. Wait for Clerk to load its basic state
+  if (!clerkLoaded) {
     return <PageLoader variant="circular" />;
   }
 
-  // If we are currently in a handshake or the custom useAuth hook is still resolving
-  if (loading || isHandshaking) {
+  // 2. If Clerk is currently doing a handshake, stay on the loader
+  if (isHandshaking) {
     return <PageLoader variant="circular" />;
   }
 
-  // If we have no user and no sessionId, then we are definitely logged out
-  if (!user && !sessionId) {
+  // 3. Performance Optimization: If we have a sessionId, we are authenticated. 
+  // RENDER the Dashboard immediately. Don't wait for 'user' profile to be 100% loaded.
+  // The Dashboard itself handles loading states for its specific data.
+  if (sessionId) {
+    return <Dashboard />;
+  }
+
+  // 4. If we are NOT loading, have no handshake, and NO sessionId, redirect to auth.
+  if (!authLoading && !sessionId) {
     return <Navigate to="/auth" replace />;
   }
 
-  return <Dashboard />;
+  // Fallback loader
+  return <PageLoader variant="circular" />;
 }
