@@ -11,6 +11,8 @@ import Auth from "./pages/Auth";
 import DashboardGuard from "./pages/DashboardGuard";
 import NotFound from "./pages/NotFound";
 
+import { ClerkProvider } from "@clerk/react";
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -19,6 +21,12 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+const CLERK_PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+
+if (!CLERK_PUBLISHABLE_KEY) {
+  throw new Error("Missing Publishable Key");
+}
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -35,19 +43,21 @@ function AnimatedRoutes() {
 }
 
 const App = () => (
-  <ErrorBoundary>
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <AnimatedRoutes />
-          </BrowserRouter>
-        </TooltipProvider>
-      </AuthProvider>
-    </QueryClientProvider>
-  </ErrorBoundary>
+  <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY}>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <AnimatedRoutes />
+            </BrowserRouter>
+          </TooltipProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
+  </ClerkProvider>
 );
 
 export default App;
