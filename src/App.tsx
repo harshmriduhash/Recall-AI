@@ -48,7 +48,8 @@ function AppContent() {
       routerReplace={(to) => navigate(to, { replace: true })}
       signInFallbackRedirectUrl="/dashboard"
       signUpFallbackRedirectUrl="/dashboard"
-      routerDebug={true}
+      signInUrl="/auth"
+      signUpUrl="/auth"
     >
       <ErrorBoundary>
         <QueryClientProvider client={queryClient}>
