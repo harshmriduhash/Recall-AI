@@ -1,5 +1,5 @@
 import { createContext, useContext } from "react";
-import { useUser, useSignIn, useSignUp, useClerk } from "@clerk/react";
+import { useUser, useSignIn, useSignUp, useClerk, useAuth as useClerkAuth } from "@clerk/react";
 
 interface AuthContextType {
   user: any;
@@ -15,28 +15,31 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { user, isLoaded: userLoaded } = useUser();
+  const { isLoaded: authLoaded, signOut: clerkSignOut } = useClerkAuth();
   const signInContext = useSignIn();
   const signUpContext = useSignUp();
-  const { signOut: clerkSignOut, session } = useClerk();
+  const { session } = useClerk();
 
-  const isLoaded = userLoaded && signInContext.isLoaded && signUpContext.isLoaded;
-  const loading = !isLoaded;
+  // overall loading state
+  const loading = !userLoaded || !authLoaded;
 
   const signUp = async (email: string, password: string, displayName: string) => {
     try {
-      if (!signUpContext.isLoaded) throw new Error("SignUp not loaded");
-      const result = await signUpContext.signUp.create({
+      const signUpResource = signUpContext.signUp;
+      if (!signUpResource) throw new Error("SignUp resource not available");
+      
+      const { error } = await signUpResource.create({
         emailAddress: email,
         password: password,
         unsafeMetadata: { displayName },
       });
       
-      if (result.status === "complete") {
-        await signUpContext.setActive({ session: result.createdSessionId });
-        return { error: null };
-      }
+      if (error) throw error;
       
-      return { error: new Error(`Signup status: ${result.status}`) };
+      const { error: finalizeError } = await signUpResource.finalize();
+      if (finalizeError) throw finalizeError;
+
+      return { error: null };
     } catch (err: any) {
       return { error: new Error(err.errors?.[0]?.message || err.message) };
     }
@@ -44,18 +47,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     try {
-      if (!signInContext.isLoaded) throw new Error("SignIn not loaded");
-      const result = await signInContext.signIn.create({
+      const signInResource = signInContext.signIn;
+      if (!signInResource) throw new Error("SignIn resource not available");
+      
+      const { error } = await signInResource.create({
         identifier: email,
         password: password,
       });
 
-      if (result.status === "complete") {
-        await signInContext.setActive({ session: result.createdSessionId });
-        return { error: null };
-      }
+      if (error) throw error;
       
-      return { error: new Error(`Signin status: ${result.status}`) };
+      const { error: finalizeError } = await signInResource.finalize();
+      if (finalizeError) throw finalizeError;
+
+      return { error: null };
     } catch (err: any) {
       return { error: new Error(err.errors?.[0]?.message || err.message) };
     }
@@ -63,11 +68,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const resetPassword = async (email: string) => {
     try {
-      if (!signInContext.isLoaded) throw new Error("SignIn not loaded");
-      await signInContext.signIn.create({
+      const signInResource = signInContext.signIn;
+      if (!signInResource) throw new Error("SignIn resource not available");
+      
+      const { error } = await signInResource.create({
         strategy: "reset_password_email_code" as any,
         identifier: email,
       });
+      if (error) throw error;
       return { error: null };
     } catch (err: any) {
       return { error: new Error(err.errors?.[0]?.message || err.message) };
