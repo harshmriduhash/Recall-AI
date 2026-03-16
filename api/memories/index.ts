@@ -1,7 +1,7 @@
 import { sql } from '@vercel/postgres';
-import { createClerkClient } from '@clerk/backend';
+import { verifyToken } from '@clerk/backend';
 
-const clerk = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY });
+const CLERK_SECRET_KEY = process.env.CLERK_SECRET_KEY;
 
 export default async function handler(req: any, res: any) {
   const { method } = req;
@@ -14,7 +14,7 @@ export default async function handler(req: any, res: any) {
 
   const token = authHeader.split(' ')[1];
   try {
-    const sessionClaims = await clerk.verifyToken(token);
+    const sessionClaims = await verifyToken(token, { secretKey: CLERK_SECRET_KEY });
     const userId = sessionClaims.sub;
 
     if (method === 'GET') {
