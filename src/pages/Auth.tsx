@@ -1,58 +1,45 @@
 import { useState, useEffect } from "react";
 import { Navigate, Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Brain, Loader2, ArrowRight, Sparkles } from "lucide-react";
-import { toast } from "sonner";
+import { Brain, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import { PageLoader } from "@/components/ui/page-loader";
+import { SignIn, SignUp } from "@clerk/react";
 import { PageTransition } from "@/components/ui/page-transition";
 import { AnimatedBackground } from "@/components/ui/animated-background";
-import { ThinkingAnimation } from "@/components/ui/ThinkingAnimation";
 
 export default function Auth() {
   const [searchParams] = useSearchParams();
   const signupParam = searchParams.get("signup") === "1";
   const { user, loading } = useAuth();
   const [isSignUp, setIsSignUp] = useState(signupParam);
-  const [isForgotPassword, setIsForgotPassword] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [displayName, setDisplayName] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const { signIn, signUp, resetPassword } = useAuth();
 
   useEffect(() => {
     if (signupParam) setIsSignUp(true);
+    else setIsSignUp(false);
   }, [signupParam]);
 
   if (loading) return <PageLoader variant="circular" />;
   if (user) return <Navigate to="/dashboard" replace />;
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmitting(true);
-
-    if (isForgotPassword) {
-      const { error } = await resetPassword(email);
-      if (error) toast.error(error.message);
-      else {
-        toast.success("Identity verification request sent. Check your secure inbox.");
-        setIsForgotPassword(false);
-      }
-      setSubmitting(false);
-      return;
+  const clerkAppearance = {
+    elements: {
+      formButtonPrimary: 
+        "bg-emerald-500 hover:bg-emerald-400 text-black font-bold py-3 rounded-2xl transition-all shadow-[0_0_20px_rgba(16,185,129,0.2)]",
+      card: "bg-transparent border-none shadow-none",
+      headerTitle: "text-white text-3xl font-bold",
+      headerSubtitle: "text-white/40",
+      socialButtonsBlockButton: "bg-white/5 border-white/10 text-white hover:bg-white/10",
+      socialButtonsBlockButtonText: "text-white font-medium",
+      formFieldLabel: "text-white/40 font-mono text-[10px] uppercase tracking-widest",
+      formFieldInput: "bg-white/5 border-white/10 text-white rounded-xl focus:border-emerald-500/50",
+      footerActionText: "text-white/30",
+      footerActionLink: "text-emerald-500 hover:text-emerald-400",
+      dividerLine: "bg-white/10",
+      dividerText: "text-white/20 font-mono text-[10px]",
+      identityPreviewText: "text-white",
+      identityPreviewEditButtonIcon: "text-emerald-500"
     }
-
-    const { error } = isSignUp
-      ? await signUp(email, password, displayName)
-      : await signIn(email, password);
-
-    if (error) toast.error(error.message);
-    else if (isSignUp) toast.success("Initialization link sent. Verify your neural node.");
-    setSubmitting(false);
   };
 
   return (
@@ -117,126 +104,35 @@ export default function Auth() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
-              className="mb-12"
+              className="mb-8"
             >
               <h2 className="text-3xl font-bold tracking-tight text-white mb-3">
-                {isForgotPassword ? "Recovery protocol" : isSignUp ? "Initialize Node" : "Access Authorized"}
+                {isSignUp ? "Initialize Node" : "Access Authorized"}
               </h2>
               <p className="text-white/40 font-light">
-                {isForgotPassword
-                  ? "Initiating identity verification sequence."
-                  : isSignUp
-                    ? "Welcome to the future of developer memory."
-                    : "Resume your cognitive extension."}
+                {isSignUp
+                  ? "Welcome to the future of developer memory."
+                  : "Resume your cognitive extension."}
               </p>
             </motion.div>
 
-            <motion.form
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1, duration: 0.6 }}
-              onSubmit={handleSubmit}
-              className="space-y-6"
-            >
-              {isSignUp && !isForgotPassword && (
-                <div className="space-y-2">
-                  <Label htmlFor="name" className="text-white/60 text-xs uppercase tracking-widest ml-1 font-mono">Identifier</Label>
-                  <Input
-                    id="name"
-                    value={displayName}
-                    onChange={(e) => setDisplayName(e.target.value)}
-                    placeholder="E.g. Nexus-Core"
-                    className="h-14 bg-white/2 border-white/5 focus-visible:border-emerald-500/50 rounded-2xl text-white placeholder:text-white/20 transition-all font-sans"
-                    required
-                  />
-                </div>
+            <div className="clerk-container">
+              {isSignUp ? (
+                <SignUp 
+                  appearance={clerkAppearance}
+                  routing="path"
+                  path="/auth"
+                  signInUrl="/auth"
+                />
+              ) : (
+                <SignIn 
+                  appearance={clerkAppearance}
+                  routing="path"
+                  path="/auth"
+                  signUpUrl="/auth?signup=1"
+                />
               )}
-              <div className="space-y-4">
-                <div className="space-y-2 group">
-                  <Label htmlFor="email" className="text-[10px] font-mono uppercase tracking-[0.2em] text-white/40 ml-1 group-focus-within:text-emerald-500 transition-colors">Email Address</Label>
-                  <div className="relative">
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="name@example.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                      className="h-12 bg-white/2 border-white/5 focus-visible:ring-emerald-500/50 focus-visible:border-emerald-500/30 text-white rounded-2xl transition-all"
-                    />
-                  </div>
-                </div>
-                {!isForgotPassword && (
-                  <div className="space-y-2 group">
-                    <div className="flex items-center justify-between ml-1">
-                      <Label htmlFor="password" className="text-[10px] font-mono uppercase tracking-[0.2em] text-white/40 group-focus-within:text-emerald-500 transition-colors">Password</Label>
-                      <button
-                        type="button"
-                        onClick={() => setIsForgotPassword(true)}
-                        className="text-[10px] font-mono uppercase tracking-wider text-emerald-500/50 hover:text-emerald-400 transition-colors"
-                      >
-                        Reset Key?
-                      </button>
-                    </div>
-                    <div className="relative">
-                      <Input
-                        id="password"
-                        type="password"
-                        placeholder="••••••••"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                        className="h-12 bg-white/2 border-white/5 focus-visible:ring-emerald-500/50 focus-visible:border-emerald-500/30 text-white rounded-2xl transition-all"
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <Button 
-                type="submit" 
-                disabled={submitting}
-                className="w-full h-12 bg-emerald-500 text-black hover:bg-emerald-400 font-bold uppercase tracking-[0.2em] text-[12px] rounded-2xl transition-all shadow-[0_0_30px_rgba(16,185,129,0.2)] hover:shadow-[0_0_40px_rgba(16,185,129,0.3)]"
-              >
-                {submitting ? (
-                  <ThinkingAnimation className="scale-75" />
-                ) : (
-                  isForgotPassword ? "Execute Recovery" : isSignUp ? "Create Account" : "Sign In"
-                )}
-              </Button>
-            </motion.form>
-
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.3 }}
-              className="mt-10 pt-8 border-t border-white/5 flex flex-col gap-4 text-sm"
-            >
-              {!isForgotPassword && (
-                <p className="text-white/30 font-light flex items-center justify-between">
-                  {isSignUp ? "Account already mapped?" : "New node detected?"}
-                  <button
-                    type="button"
-                    onClick={() => setIsSignUp(!isSignUp)}
-                    className="font-medium text-emerald-400 hover:text-emerald-300 transition-colors bg-emerald-500/5 px-3 py-1 rounded-full border border-emerald-500/10"
-                  >
-                    {isSignUp ? "Switch to Access" : "Initialize Now"}
-                  </button>
-                </p>
-              )}
-              {!isSignUp && (
-                <p className="text-white/30 font-light flex items-center justify-between">
-                  Lost your cipher?
-                  <button
-                    type="button"
-                    onClick={() => setIsForgotPassword(!isForgotPassword)}
-                    className="font-medium text-white/60 hover:text-white transition-colors"
-                  >
-                    {isForgotPassword ? "Return via Auth" : "Recovery protocol"}
-                  </button>
-                </p>
-              )}
-            </motion.div>
+            </div>
           </div>
         </div>
       </div>

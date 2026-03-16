@@ -28,13 +28,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const signUpResource = signUpContext.signUp;
       if (!signUpResource) throw new Error("SignUp resource not available");
       
-      const { error } = await signUpResource.create({
+      const { error: createError } = await signUpResource.create({
         emailAddress: email,
-        password: password,
         unsafeMetadata: { displayName },
       });
+      if (createError) throw createError;
       
-      if (error) throw error;
+      const { error: passwordError } = await signUpResource.password({
+        password: password
+      });
+      if (passwordError) throw passwordError;
       
       const { error: finalizeError } = await signUpResource.finalize();
       if (finalizeError) throw finalizeError;
@@ -50,12 +53,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const signInResource = signInContext.signIn;
       if (!signInResource) throw new Error("SignIn resource not available");
       
-      const { error } = await signInResource.create({
+      const { error: createError } = await signInResource.create({
         identifier: email,
-        password: password,
       });
+      if (createError) throw createError;
 
-      if (error) throw error;
+      const { error: passwordError } = await signInResource.password({
+        identifier: email,
+        password: password
+      });
+      if (passwordError) throw passwordError;
       
       const { error: finalizeError } = await signInResource.finalize();
       if (finalizeError) throw finalizeError;
