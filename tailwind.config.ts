@@ -73,6 +73,10 @@ export default {
           "0%": { boxShadow: "0 0 0 0 rgba(16, 185, 129, 0.4)" },
           "70%": { boxShadow: "0 0 0 10px rgba(16, 185, 129, 0)" },
           "100%": { boxShadow: "0 0 0 0 rgba(16, 185, 129, 0)" }
+        },
+        "gradient-x": {
+          "0%, 100%": { "background-size": "200% 200%", "background-position": "left center" },
+          "50%": { "background-size": "200% 200%", "background-position": "right center" }
         }
       },
       animation: {
@@ -82,7 +86,8 @@ export default {
         "fade-in": "fade-in 0.4s ease-out",
         "thinking-dots": "thinking-dots 1.4s ease-in-out infinite",
         "neural-pulse": "neural-pulse 2s infinite",
-        "shimmer": "shimmer 2.5s infinite linear"
+        "shimmer": "shimmer 2.5s infinite linear",
+        "gradient-x": "gradient-x 3s ease infinite"
       },
       backgroundSize: {
         shimmer: "200% 100%",
