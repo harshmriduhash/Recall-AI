@@ -16,25 +16,28 @@ export function EmptyState({ icon: Icon, title, description, action, className }
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
-      className={cn("flex flex-col items-center justify-center py-16 px-4 text-center", className)}
+      className={cn("flex flex-col items-center justify-center py-20 px-6 text-center", className)}
     >
       <motion.div
-        initial={{ scale: 0.8 }}
-        animate={{ scale: 1 }}
+        initial={{ scale: 0.8, rotate: -10 }}
+        animate={{ scale: 1, rotate: 0 }}
         transition={{ delay: 0.1, type: "spring", stiffness: 200 }}
-        className="relative mb-6"
+        className="relative mb-8"
       >
-        {/* Glow ring */}
-        <div className="absolute inset-0 rounded-full bg-primary/10 blur-xl scale-150" />
-        <div className="relative flex h-20 w-20 items-center justify-center rounded-2xl bg-primary/5 border border-primary/10">
-          <Icon className="h-8 w-8 text-primary/50" />
+        {/* Glow ecosystem */}
+        <div className="absolute inset-0 rounded-full bg-emerald-500/10 blur-2xl scale-150 animate-pulse" />
+        <div className="relative flex h-24 w-24 items-center justify-center rounded-[2rem] bg-emerald-950/20 border border-emerald-500/20 backdrop-blur-sm">
+          <Icon className="h-10 w-10 text-emerald-500/60" />
+        </div>
+        <div className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full bg-[#050505] border border-emerald-500/20 flex items-center justify-center">
+          <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping" />
         </div>
       </motion.div>
       <motion.h3
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className="text-base font-semibold text-foreground mb-2"
+        className="text-xl font-bold text-white mb-3"
       >
         {title}
       </motion.h3>
@@ -42,7 +45,7 @@ export function EmptyState({ icon: Icon, title, description, action, className }
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
-        className="text-sm text-muted-foreground max-w-xs"
+        className="text-white/40 font-light max-w-[280px] leading-relaxed"
       >
         {description}
       </motion.p>
@@ -51,7 +54,7 @@ export function EmptyState({ icon: Icon, title, description, action, className }
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
-          className="mt-6"
+          className="mt-10"
         >
           {action}
         </motion.div>
