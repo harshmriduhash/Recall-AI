@@ -1,8 +1,9 @@
 import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
 
-export const ThinkingAnimation = () => {
+export const ThinkingAnimation = ({ className }: { className?: string }) => {
   return (
-    <div className="flex items-center gap-1.5 px-3 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 w-fit">
+    <div className={cn("flex items-center gap-1.5 px-3 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 w-fit", className)}>
       <div className="flex gap-1">
         {[0, 1, 2].map((i) => (
           <motion.div
