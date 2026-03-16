@@ -22,7 +22,7 @@ const queryClient = new QueryClient({
   },
 });
 
-const CLERK_PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+const CLERK_PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || import.meta.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -48,6 +48,7 @@ function AppContent() {
       routerReplace={(to) => navigate(to, { replace: true })}
       signInFallbackRedirectUrl="/dashboard"
       signUpFallbackRedirectUrl="/dashboard"
+      routerDebug={true}
     >
       <ErrorBoundary>
         <QueryClientProvider client={queryClient}>
