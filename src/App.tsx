@@ -30,7 +30,7 @@ function AnimatedRoutes() {
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={<Landing />} />
-        <Route path="/auth" element={<Auth />} />
+        <Route path="/auth/*" element={<Auth />} />
         <Route path="/dashboard" element={<DashboardGuard />} />
         <Route path="*" element={<NotFound />} />
       </Routes>

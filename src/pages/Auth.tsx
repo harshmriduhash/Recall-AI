@@ -123,6 +123,8 @@ export default function Auth() {
                   routing="path"
                   path="/auth"
                   signInUrl="/auth"
+                  fallbackRedirectUrl="/dashboard"
+                  forceRedirectUrl="/dashboard"
                 />
               ) : (
                 <SignIn 
@@ -130,6 +132,8 @@ export default function Auth() {
                   routing="path"
                   path="/auth"
                   signUpUrl="/auth?signup=1"
+                  fallbackRedirectUrl="/dashboard"
+                  forceRedirectUrl="/dashboard"
                 />
               )}
             </div>
