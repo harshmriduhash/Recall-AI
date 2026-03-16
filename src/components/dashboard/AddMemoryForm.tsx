@@ -118,9 +118,10 @@ export function AddMemoryForm({ onSubmit, isSubmitting }: Props) {
       mediaRecorderRef.current = mediaRecorder;
       setIsRecording(true);
       toast.info("Recording... Click mic again to stop.");
-    } catch (err: any) {
-      if (err.name === "NotAllowedError") toast.error("Microphone access denied.");
-      else if (err.name === "NotFoundError") toast.error("No microphone found.");
+    } catch (err: unknown) {
+      const error = err as { name?: string };
+      if (error.name === "NotAllowedError") toast.error("Microphone access denied.");
+      else if (error.name === "NotFoundError") toast.error("No microphone found.");
       else toast.error("Could not access microphone.");
     }
   };

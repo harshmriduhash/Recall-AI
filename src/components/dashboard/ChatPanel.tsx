@@ -92,14 +92,20 @@ export function ChatPanel({ onInspectorUpdate }: Props) {
                 return [...prev, { role: "assistant", content: assistantSoFar }];
               });
             }
-          } catch {
+          } catch (err: unknown) {
+            console.error("Failed to parse stream chunk:", err);
             textBuffer = line + "\n" + textBuffer;
             break;
           }
         }
       }
-    } catch (e: any) {
-      toast.error(e.message || "UPLINK_ERR: Neural link lost.");
+    } catch (err: unknown) {
+      console.error("Chat send error:", err);
+      let errorMessage = "UPLINK_ERR: Neural link lost.";
+      if (err instanceof Error) {
+        errorMessage = err.message;
+      }
+      toast.error(errorMessage);
     }
     setIsLoading(false);
   };
