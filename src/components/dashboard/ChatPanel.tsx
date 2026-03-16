@@ -12,7 +12,7 @@ import type { ChatMessage, MemoryInspectorData } from "@/types/memory";
 import { toast } from "sonner";
 import { useAuth } from "@clerk/react";
 
-const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
+const CHAT_URL = "/api/chat";
 
 interface Props {
   onInspectorUpdate: (data: MemoryInspectorData | null) => void;

@@ -49,6 +49,11 @@ export function AddMemoryForm({ onSubmit, isSubmitting }: Props) {
       return;
     }
     setSuggestingTags(true);
+    // TODO: Migrate suggest-tags to the new Vercel API
+    toast.info("Auto-tagging is being migrated to the new API system.");
+    setSuggestingTags(false);
+    return;
+    /*
     try {
       const token = await getToken();
       const resp = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/suggest-tags`, {
@@ -71,6 +76,7 @@ export function AddMemoryForm({ onSubmit, isSubmitting }: Props) {
       toast.error("Could not get suggestions");
     }
     setSuggestingTags(false);
+    */
   };
 
   const acceptTag = (tag: string) => {
@@ -96,6 +102,11 @@ export function AddMemoryForm({ onSubmit, isSubmitting }: Props) {
         const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
         if (audioBlob.size < 1000) { toast.error("Recording too short. Try again."); return; }
         setIsTranscribing(true);
+        // TODO: Migrate transcription to the new Vercel API
+        toast.info("Voice transcription is being migrated to the new API system.");
+        setIsTranscribing(false);
+        return;
+        /*
         try {
           const token = await getToken();
           const formData = new FormData();
@@ -114,6 +125,7 @@ export function AddMemoryForm({ onSubmit, isSubmitting }: Props) {
           }
         } catch { toast.error("Transcription failed. Try again."); }
         setIsTranscribing(false);
+        */
       };
       mediaRecorder.start();
       mediaRecorderRef.current = mediaRecorder;
