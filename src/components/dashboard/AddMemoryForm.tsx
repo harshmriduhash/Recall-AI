@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Mic, MicOff, Upload, Plus, X, Loader2, Sparkles } from "lucide-react";
 import type { MemoryType, MemoryLayer } from "@/types/memory";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@clerk/react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface Props {
@@ -16,6 +16,7 @@ interface Props {
 }
 
 export function AddMemoryForm({ onSubmit, isSubmitting }: Props) {
+  const { getToken } = useAuth();
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [type, setType] = useState<MemoryType>("note");
@@ -49,12 +50,12 @@ export function AddMemoryForm({ onSubmit, isSubmitting }: Props) {
     }
     setSuggestingTags(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const token = await getToken();
       const resp = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/suggest-tags`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${session?.access_token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ title, content, type }),
       });
@@ -96,12 +97,12 @@ export function AddMemoryForm({ onSubmit, isSubmitting }: Props) {
         if (audioBlob.size < 1000) { toast.error("Recording too short. Try again."); return; }
         setIsTranscribing(true);
         try {
-          const { data: { session } } = await supabase.auth.getSession();
+          const token = await getToken();
           const formData = new FormData();
           formData.append("audio", audioBlob, "recording.webm");
           const resp = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/transcribe`, {
             method: "POST",
-            headers: { Authorization: `Bearer ${session?.access_token}` },
+            headers: { Authorization: `Bearer ${token}` },
             body: formData,
           });
           const data = await resp.json();

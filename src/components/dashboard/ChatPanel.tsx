@@ -10,7 +10,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { ThinkingAnimation } from "@/components/ui/ThinkingAnimation";
 import type { ChatMessage, MemoryInspectorData } from "@/types/memory";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@clerk/react";
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
 
@@ -28,6 +28,8 @@ export function ChatPanel({ onInspectorUpdate }: Props) {
     scrollRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  const { getToken } = useAuth();
+
   const send = async () => {
     const text = input.trim();
     if (!text || isLoading) return;
@@ -38,8 +40,7 @@ export function ChatPanel({ onInspectorUpdate }: Props) {
 
     let assistantSoFar = "";
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const token = session?.access_token;
+      const token = await getToken();
       if (!token) {
         toast.error("AUTH_FAILURE: Session expired.");
         setIsLoading(false);
