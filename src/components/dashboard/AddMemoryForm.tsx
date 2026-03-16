@@ -151,9 +151,9 @@ export function AddMemoryForm({ onSubmit, isSubmitting }: Props) {
     >
       <div className="space-y-4">
         <div className="group">
-          <label className="text-[10px] font-mono uppercase tracking-[0.2em] text-white/20 mb-2 block ml-1">Archive Title</label>
+          <label className="text-[10px] font-mono uppercase tracking-[0.2em] text-white/20 mb-2 block ml-1">Memory Title</label>
           <Input
-            placeholder="FRAGMENT_IDENTIFIER"
+            placeholder="Enter title..."
             value={title}
             onChange={e => setTitle(e.target.value)}
             required
@@ -162,9 +162,9 @@ export function AddMemoryForm({ onSubmit, isSubmitting }: Props) {
         </div>
 
         <div className="group relative">
-          <label className="text-[10px] font-mono uppercase tracking-[0.2em] text-white/20 mb-2 block ml-1">Node Content</label>
+          <label className="text-[10px] font-mono uppercase tracking-[0.2em] text-white/20 mb-2 block ml-1">Content</label>
           <Textarea
-            placeholder="Initialize cognitive input sequence..."
+            placeholder="Write your memory here..."
             value={content}
             onChange={e => setContent(e.target.value)}
             className="min-h-[180px] pr-14 bg-white/2 border-white/5 focus-visible:ring-emerald-500/50 focus-visible:border-emerald-500/30 text-white rounded-2xl transition-all leading-relaxed resize-none"
@@ -230,7 +230,7 @@ export function AddMemoryForm({ onSubmit, isSubmitting }: Props) {
           <div className="relative flex-1 group">
             <Plus className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white/20 group-focus-within:text-emerald-500 transition-colors" />
             <Input
-              placeholder="Append neural tag..."
+              placeholder="Add tag..."
               value={tagInput}
               onChange={e => setTagInput(e.target.value)}
               onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addTag(); } }}
@@ -303,7 +303,7 @@ export function AddMemoryForm({ onSubmit, isSubmitting }: Props) {
         className="w-full h-12 bg-emerald-500 text-black hover:bg-emerald-400 font-bold uppercase tracking-[0.2em] text-[12px] rounded-2xl transition-all shadow-[0_0_30px_rgba(16,185,129,0.2)] hover:shadow-[0_0_40px_rgba(16,185,129,0.3)] disabled:opacity-50" 
         disabled={isSubmitting}
       >
-        {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Commit to Core"}
+        {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Save Memory"}
       </Button>
     </motion.form>
   );
