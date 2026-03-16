@@ -151,46 +151,57 @@ export default function Auth() {
                   />
                 </div>
               )}
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-white/60 text-xs uppercase tracking-widest ml-1 font-mono">Signal Address</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="nexus@recall.ai"
-                  className="h-14 bg-white/2 border-white/5 focus-visible:border-emerald-500/50 rounded-2xl text-white placeholder:text-white/20 transition-all font-sans"
-                  required
-                />
-              </div>
-              {!isForgotPassword && (
-                <div className="space-y-2">
-                  <Label htmlFor="password" className="text-white/60 text-xs uppercase tracking-widest ml-1 font-mono">Cipher Key</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••••••"
-                    className="h-14 bg-white/2 border-white/5 focus-visible:border-emerald-500/50 rounded-2xl text-white placeholder:text-white/20 transition-all font-sans"
-                    required
-                    minLength={6}
-                  />
+              <div className="space-y-4">
+                <div className="space-y-2 group">
+                  <Label htmlFor="email" className="text-[10px] font-mono uppercase tracking-[0.2em] text-white/40 ml-1 group-focus-within:text-emerald-500 transition-colors">Email Address</Label>
+                  <div className="relative">
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="name@example.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                      className="h-12 bg-white/2 border-white/5 focus-visible:ring-emerald-500/50 focus-visible:border-emerald-500/30 text-white rounded-2xl transition-all"
+                    />
+                  </div>
                 </div>
-              )}
-              
-              <Button
-                type="submit"
-                className="w-full h-14 text-base font-semibold rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-black transition-all shadow-[0_0_30px_rgba(16,185,129,0.2)] group"
+                {!isForgotPassword && (
+                  <div className="space-y-2 group">
+                    <div className="flex items-center justify-between ml-1">
+                      <Label htmlFor="password" className="text-[10px] font-mono uppercase tracking-[0.2em] text-white/40 group-focus-within:text-emerald-500 transition-colors">Password</Label>
+                      <button
+                        type="button"
+                        onClick={() => setIsForgotPassword(true)}
+                        className="text-[10px] font-mono uppercase tracking-wider text-emerald-500/50 hover:text-emerald-400 transition-colors"
+                      >
+                        Reset Key?
+                      </button>
+                    </div>
+                    <div className="relative">
+                      <Input
+                        id="password"
+                        type="password"
+                        placeholder="••••••••"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                        className="h-12 bg-white/2 border-white/5 focus-visible:ring-emerald-500/50 focus-visible:border-emerald-500/30 text-white rounded-2xl transition-all"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <Button 
+                type="submit" 
                 disabled={submitting}
+                className="w-full h-12 bg-emerald-500 text-black hover:bg-emerald-400 font-bold uppercase tracking-[0.2em] text-[12px] rounded-2xl transition-all shadow-[0_0_30px_rgba(16,185,129,0.2)] hover:shadow-[0_0_40px_rgba(16,185,129,0.3)]"
               >
                 {submitting ? (
-                  <ThinkingAnimation />
+                  <ThinkingAnimation className="scale-75" />
                 ) : (
-                  <>
-                    <span className="mr-2">{isForgotPassword ? "Execute Recovery" : isSignUp ? "Establish Node" : "Authorize Node"}</span>
-                    <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                  </>
+                  isForgotPassword ? "Execute Recovery" : isSignUp ? "Create Account" : "Sign In"
                 )}
               </Button>
             </motion.form>
