@@ -47,19 +47,17 @@ const DEMO_MEMORIES = [
 
 export function DemoDataLoader() {
   const [loading, setLoading] = useState(false);
-  const { user } = useAuth();
-  const queryClient = useQueryClient();
+  const { addMemory } = useMemories();
 
   const loadDemo = async () => {
-    if (!user) return;
     setLoading(true);
-    const { error } = await supabase.from("memories").insert(
-      DEMO_MEMORIES.map(m => ({ ...m, user_id: user.id }))
-    );
-    if (error) toast.error(error.message);
-    else {
+    try {
+      for (const memory of DEMO_MEMORIES) {
+        await addMemory.mutateAsync(memory);
+      }
       toast.success("Demo memories loaded!");
-      queryClient.invalidateQueries({ queryKey: ["memories"] });
+    } catch (err: any) {
+      toast.error(err.message);
     }
     setLoading(false);
   };
