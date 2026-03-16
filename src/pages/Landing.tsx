@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Brain, MessageSquare, Layers, Sparkles, ArrowRight, Zap, Shield, Search, Eye, Mic } from "lucide-react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
+import { ThinkingAnimation } from "@/components/ui/ThinkingAnimation";
+import { AISkeleton, MemorySkeleton } from "@/components/ui/AISkeleton";
 
 const features = [
   {

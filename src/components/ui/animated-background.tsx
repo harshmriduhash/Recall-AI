@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
 
 /** Ambient animated mesh gradient background with floating particles */
 export function AnimatedBackground({ className, particles = true }: { className?: string; particles?: boolean }) {
