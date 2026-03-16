@@ -10,6 +10,7 @@ import { motion } from "framer-motion";
 import { PageLoader } from "@/components/ui/page-loader";
 import { PageTransition } from "@/components/ui/page-transition";
 import { AnimatedBackground } from "@/components/ui/animated-background";
+import { ThinkingAnimation } from "@/components/ui/ThinkingAnimation";
 
 export default function Auth() {
   const [searchParams] = useSearchParams();
