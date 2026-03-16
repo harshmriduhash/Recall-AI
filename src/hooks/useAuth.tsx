@@ -15,27 +15,27 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { user, isLoaded: userLoaded } = useUser();
-  const { signIn: clerkSignIn, isLoaded: signInLoaded, setActive: setSignInActive } = useSignIn();
-  const { signUp: clerkSignUp, isLoaded: signUpLoaded, setActive: setSignUpActive } = useSignUp();
+  const signInContext = useSignIn();
+  const signUpContext = useSignUp();
   const { signOut: clerkSignOut, session } = useClerk();
 
-  const loading = !userLoaded || !signInLoaded || !signUpLoaded;
+  const isLoaded = userLoaded && signInContext.isLoaded && signUpContext.isLoaded;
+  const loading = !isLoaded;
 
   const signUp = async (email: string, password: string, displayName: string) => {
     try {
-      if (!clerkSignUp) throw new Error("SignUp not loaded");
-      const result = await clerkSignUp.create({
+      if (!signUpContext.isLoaded) throw new Error("SignUp not loaded");
+      const result = await signUpContext.signUp.create({
         emailAddress: email,
-        password,
+        password: password,
         unsafeMetadata: { displayName },
       });
       
       if (result.status === "complete") {
-        await setSignUpActive({ session: result.createdSessionId });
+        await signUpContext.setActive({ session: result.createdSessionId });
         return { error: null };
       }
       
-      // Handle multi-step signup if needed, but for now assuming complete or error
       return { error: new Error(`Signup status: ${result.status}`) };
     } catch (err: any) {
       return { error: new Error(err.errors?.[0]?.message || err.message) };
@@ -44,14 +44,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     try {
-      if (!clerkSignIn) throw new Error("SignIn not loaded");
-      const result = await clerkSignIn.create({
+      if (!signInContext.isLoaded) throw new Error("SignIn not loaded");
+      const result = await signInContext.signIn.create({
         identifier: email,
-        password,
+        password: password,
       });
 
       if (result.status === "complete") {
-        await setSignInActive({ session: result.createdSessionId });
+        await signInContext.setActive({ session: result.createdSessionId });
         return { error: null };
       }
       
@@ -63,9 +63,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const resetPassword = async (email: string) => {
     try {
-      if (!clerkSignIn) throw new Error("SignIn not loaded");
-      await clerkSignIn.create({
-        strategy: "reset_password_email_code",
+      if (!signInContext.isLoaded) throw new Error("SignIn not loaded");
+      await signInContext.signIn.create({
+        strategy: "reset_password_email_code" as any,
         identifier: email,
       });
       return { error: null };
