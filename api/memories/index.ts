@@ -6,6 +6,24 @@ const CLERK_SECRET_KEY = process.env.CLERK_SECRET_KEY;
 export default async function handler(req: any, res: any) {
   const { method } = req;
 
+  // Ensure table exists (simplified migration)
+  try {
+    await sql`
+      CREATE TABLE IF NOT EXISTS memories (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        title TEXT NOT NULL,
+        content TEXT NOT NULL,
+        type TEXT NOT NULL,
+        memory_layer TEXT NOT NULL,
+        tags JSONB DEFAULT '[]',
+        user_id TEXT NOT NULL,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      )
+    `;
+  } catch (e) {
+    console.error('Table init error:', e);
+  }
+
   // Verify authentication
   const authHeader = req.headers.authorization;
   if (!authHeader) {
